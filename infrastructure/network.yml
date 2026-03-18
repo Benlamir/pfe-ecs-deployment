@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PFE Milestone 2 : Fondation Réseau (VPC, Subnets publics, IGW)'
+
+Parameters:
+  VpcCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: Plage d'adresses IP pour le VPC complet
+  
+  PublicSubnet1CIDR:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: Plage d'adresses pour le sous-réseau public 1
+
+  PublicSubnet2CIDR:
+    Type: String
+    Default: 10.0.2.0/24
+    Description: Plage d'adresses pour le sous-réseau public 2
+
+Resources:
+  # 1. Le VPC (Le réseau virtuel)
+  PfeVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: pfe-vpc
+
+  # 2. L'Internet Gateway (La porte vers internet)
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: pfe-igw
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref PfeVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # 3. Les Sous-réseaux (Subnets) dans 2 zones de disponibilité différentes (Haute Disponibilité)
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref PfeVPC
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: pfe-public-subnet-1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref PfeVPC
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: pfe-public-subnet-2
+
+  # 4. Le Routage (Route Table)
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref PfeVPC
+      Tags:
+        - Key: Name
+          Value: pfe-public-rt
+
+  # 5. La Route par défaut vers internet
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  # 6. Association de la table de routage aux sous-réseaux
+  Subnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  Subnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+Outputs:
+  VpcId:
+    Description: ID du VPC créé
+    Value: !Ref PfeVPC
+    Export:
+      Name: PfeVpcId
+  PublicSubnet1Id:
+    Description: ID du Sous-réseau Public 1
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: PfePublicSubnet1Id
+  PublicSubnet2Id:
+    Description: ID du Sous-réseau Public 2
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: PfePublicSubnet2Id
