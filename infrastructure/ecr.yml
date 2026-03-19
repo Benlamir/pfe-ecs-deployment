@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PFE Milestone 3 : Registre ECR'
+
+Resources:
+  PfeRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: pfe-app-repo
+      # Sécurité : Analyse automatique des vulnérabilités de l'image
+      ImageScanningConfiguration:
+        ScanOnPush: true 
+      # Pratique pour détruire la stack proprement à la fin du PFE
+      EmptyOnDelete: true 
+
+Outputs:
+  RepositoryUri:
+    Description: L'adresse URI du registre
+    Value: !GetAtt PfeRepository.RepositoryUri
