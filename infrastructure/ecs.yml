@@ -20,15 +20,15 @@ Resources:
       ClusterName: pfe-cluster
 
   EcsSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Autorise le trafic entrant vers le conteneur
-      VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref ContainerPort
-          ToPort: !Ref ContainerPort
-          CidrIp: 0.0.0.0/0
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Autorise le trafic entrant uniquement depuis ALB
+        VpcId: !Ref VpcId
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: !Ref ContainerPort
+            ToPort: !Ref ContainerPort
+            SourceSecurityGroupId: !ImportValue PfeAlbSecurityGroupId
 
   EcsTaskExecutionRole:
     Type: AWS::IAM::Role
@@ -86,3 +86,7 @@ Resources:
           SecurityGroups:
             - !Ref EcsSecurityGroup
           Subnets: !Ref SubnetIds
+      LoadBalancers:
+        - ContainerName: pfe-app-container
+          ContainerPort: !Ref ContainerPort
+          TargetGroupArn: !ImportValue PfeTargetGroupArn

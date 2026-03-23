@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PFE Milestone 5 : Application Load Balancer (ALB)'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: ID du VPC
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: IDs des sous-réseaux publics pour l'ALB
+
+Resources:
+  # 1. Le Pare-feu de l'ALB (Le vigile à l'entrée)
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Autorise le trafic HTTP entrant vers ALB
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: pfe-alb-sg
+
+  # 2. Le Load Balancer (Le distributeur)
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: pfe-app-alb
+      Scheme: internet-facing
+      Subnets: !Ref SubnetIds
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+      Type: application
+
+  # 3. Le Groupe de Cibles (La destination)
+  AlbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: pfe-app-tg
+      VpcId: !Ref VpcId
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+
+  # 4. L'Écouteur (Les oreilles de l'ALB)
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref AlbTargetGroup
+
+Outputs:
+  AlbDnsName:
+    Description: Le nom de domaine public de l'ALB
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: PfeAlbDnsName
+  TargetGroupArn:
+    Description: L'ARN du Target Group pour ECS
+    Value: !Ref AlbTargetGroup
+    Export:
+      Name: PfeTargetGroupArn
+  AlbSecurityGroupId:
+    Description: L'ID du Security Group de l'ALB
+    Value: !GetAtt AlbSecurityGroup.GroupId
+    Export:
+      Name: PfeAlbSecurityGroupId
