@@ -1,0 +1,58 @@
+name: Deploy to ECR
+
+# 1. Le Déclencheur (Trigger)
+on:
+  push:
+    branches:
+      - main
+    # Le pipeline ne se lance que si on modifie le code de l'app ou le Dockerfile
+    paths:
+      - 'app/**'
+      - 'Dockerfile'
+      - '.github/workflows/**'
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: pfe-app-repo
+
+# 2. Les Permissions (Le cœur de l'OIDC)
+permissions:
+  id-token: write # OBLIGATOIRE pour que GitHub demande le jeton OIDC à AWS
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      # 3. L'Authentification sans mot de passe (via le rôle IAM créé tout à l'heure)
+      - name: Configuration des credentials AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Connexion à Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4. Construction et envoi de l'image
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          # On utilise l'ID unique du commit (SHA) comme tag d'image pour la traçabilité
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "Construction de l'image Docker..."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          
+          echo "Poussée de l'image taggée avec le commit..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          
+          echo "Mise à jour du tag 'latest'..."
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
