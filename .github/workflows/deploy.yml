@@ -56,3 +56,13 @@ jobs:
           echo "Mise à jour du tag 'latest'..."
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+      # 5. Déploiement Continu (CD) sur Fargate
+      - name: Mise à jour du service ECS (Rolling Update)
+        run: |
+          echo "Ordonne à ECS de détruire l'ancien conteneur et de lancer le nouveau avec l'image 'latest'..."
+          aws ecs update-service \
+            --cluster pfe-cluster \
+            --service pfe-app-service \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
