@@ -1,0 +1,42 @@
+@startuml
+title Diagramme de Séquence : Inscription d'un Candidat à une Formation
+
+autonumber
+actor "Candidat" as User
+participant "Frontend (React)\n[Hébergé sur S3]" as Front
+participant "Load Balancer\n[AWS ALB]" as ALB
+participant "Backend API (Django)\n[Fargate ECS]" as API
+database "Base de Données\n[AWS RDS]" as DB
+
+User -> Front : Remplit le formulaire d'inscription (CV, Diplôme)
+activate Front
+
+Front -> Front : Validation locale des champs
+Front -> ALB : POST /api/enrollments/ (FormData)
+activate ALB
+
+ALB -> API : Route la requête (Port 8000)
+activate API
+
+API -> API : Vérifie les permissions (IsAuthenticated)
+API -> API : Valide les données (Serializer)
+
+alt Données Valides
+    API -> DB : Sauvegarde l'inscription (En attente)
+    activate DB
+    DB --> API : Inscription créée (ID)
+    deactivate DB
+    API --> ALB : 201 Created (Données Inscription)
+    ALB --> Front : 201 Created
+    Front --> User : Affiche message de succès "Candidature envoyée"
+else Données Invalides ou Fichier trop lourd
+    API --> ALB : 400 Bad Request (Erreurs)
+    ALB --> Front : 400 Bad Request
+    Front --> User : Affiche les erreurs sur le formulaire
+end
+
+deactivate API
+deactivate ALB
+deactivate Front
+
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+title Transition Architecturale : Local vs Cloud (AWS)
+
+skinparam componentStyle rectangle
+
+package "Environnement Local (Développement)" {
+  node "Machine Développeur (Docker Compose)" as LocalDev {
+    [Frontend (React Dev Server)] as LocalReact
+    [Backend (Django)] as LocalDjango
+    database "Base de données\n(SQLite / Conteneur Local)" as LocalDB
+    
+    LocalReact <--> LocalDjango
+    LocalDjango <--> LocalDB
+  }
+}
+
+package "Environnement de Production (AWS)" {
+  cloud "VPC AWS" {
+    [Frontend Compilé (Statique)] as S3 <<Amazon S3>>
+    
+    node "Sous-réseau Public" {
+      [Application Load Balancer] as ALB
+    }
+    
+    node "Sous-réseau Privé (Calcul)" {
+      [Backend API (Django)] as Fargate <<ECS Fargate (Stateless)>>
+    }
+    
+    node "Sous-réseau Privé (Données)" {
+      database "Base de données Persistante" as RDS <<Amazon RDS>>
+    }
+    
+    S3 --> ALB : Requêtes API (CORS)
+    ALB --> Fargate : Route le trafic
+    Fargate <--> RDS : Lecture/Écriture
+  }
+}
+
+note bottom of Fargate
+  **Stateless (Sans État) :**
+  Le conteneur peut être détruit
+  et recréé sans perte de données.
+end note
+
+note bottom of RDS
+  **Stateful (Avec État) :**
+  Les données sont persistantes,
+  sauvegardées et sécurisées.
+end note
+
+@enduml
