@@ -34,7 +34,7 @@ echo "[3/3] Déploiement de pfe-ecs-stack..."
 aws cloudformation deploy \
   --template-file infrastructure/ecs.yml \
   --stack-name pfe-ecs-stack \
-  --parameter-overrides VpcId=$VPC_ID SubnetIds=$SUBNETS \
+  --parameter-overrides VpcId=$VPC_ID SubnetIds=$SUBNETS DBPassword=$DB_PASSWORD \
   --capabilities CAPABILITY_IAM \
   --profile $PROFILE
 echo "✅ ECS déployé."

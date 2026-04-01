@@ -10,8 +10,11 @@ Parameters:
     Description: IDs des sous-réseaux publics
   ContainerPort:
     Type: Number
-    Default: 80
+    Default: 8000
     Description: Port d'écoute de ton application (modifier si ton app tourne sur 5000 ou 8080)
+  DBPassword:
+    Type: String
+    NoEcho: true
 
 Resources:
   PfeCluster:
@@ -60,11 +63,22 @@ Resources:
       Memory: 512
       ExecutionRoleArn: !GetAtt EcsTaskExecutionRole.Arn
       ContainerDefinitions:
-        - Name: pfe-app-container
+        - Name: cfc-backend-container
           Image: 311141564701.dkr.ecr.us-east-1.amazonaws.com/pfe-app-repo:latest
           PortMappings:
             - ContainerPort: !Ref ContainerPort
               Protocol: tcp
+          Environment:
+            - Name: DB_HOST
+              Value: !ImportValue pfe-rds-endpoint
+            - Name: DB_PORT
+              Value: !ImportValue pfe-rds-port
+            - Name: DB_NAME
+              Value: cfcdb
+            - Name: DB_USER
+              Value: cfcadmin
+            - Name: DB_PASSWORD
+              Value: !Ref DBPassword
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -87,6 +101,6 @@ Resources:
             - !Ref EcsSecurityGroup
           Subnets: !Ref SubnetIds
       LoadBalancers:
-        - ContainerName: pfe-app-container
+        - ContainerName: cfc-backend-container
           ContainerPort: !Ref ContainerPort
           TargetGroupArn: !ImportValue PfeTargetGroupArn
