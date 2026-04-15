@@ -42,11 +42,11 @@ Resources:
     Properties:
       Name: pfe-app-tg
       VpcId: !Ref VpcId
-      Port: 80
+      Port: 8000
       Protocol: HTTP
       TargetType: ip
       HealthCheckIntervalSeconds: 30
-      HealthCheckPath: /
+      HealthCheckPath: /health/   # <-- L'ALB interrogera désormais cette route
       HealthCheckProtocol: HTTP
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 3
