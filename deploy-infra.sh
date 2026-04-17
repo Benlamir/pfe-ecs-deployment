@@ -12,7 +12,7 @@ echo "🚀 Lancement du déploiement de l'infrastructure"
 echo "=========================================="
 
 # 1. Déploiement du Routage (ALB)
-echo "[1/3] Déploiement de pfe-alb-stack..."
+echo "[1/4] Déploiement de pfe-alb-stack..."
 aws cloudformation deploy \
   --template-file infrastructure/alb.yml \
   --stack-name pfe-alb-stack \
@@ -21,7 +21,7 @@ aws cloudformation deploy \
 echo "✅ ALB déployé."
 
 # 2. Déploiement des Données (RDS)
-echo "[2/3] Déploiement de pfe-rds-stack (Cela prend entre 5 et 10 minutes)..."
+echo "[2/4] Déploiement de pfe-rds-stack (Cela prend entre 5 et 10 minutes)..."
 aws cloudformation deploy \
   --template-file infrastructure/rds.yml \
   --stack-name pfe-rds-stack \
@@ -30,7 +30,7 @@ aws cloudformation deploy \
 echo "✅ RDS (Base de données) déployé."
 
 # 3. Déploiement du Calcul (ECS)
-echo "[3/3] Déploiement de pfe-ecs-stack..."
+echo "[3/4] Déploiement de pfe-ecs-stack..."
 aws cloudformation deploy \
   --template-file infrastructure/ecs.yml \
   --stack-name pfe-ecs-stack \
@@ -41,3 +41,21 @@ echo "✅ ECS déployé."
 
 echo "=========================================="
 echo "🎯 Infrastructure Cloud 3-Tiers opérationnelle."
+
+# ... (tes 3 premières stacks restent identiques) ...
+
+# 4. Déploiement du Frontend (S3)
+echo "[4/4] Déploiement de pfe-s3-stack..."
+aws cloudformation deploy \
+  --template-file infrastructure/s3.yml \
+  --stack-name pfe-s3-stack \
+  --profile $PROFILE
+
+echo "✅ S3 (Frontend) déployé."
+echo "=========================================="
+echo "🎯 Récupération de l'URL du site web..."
+aws cloudformation describe-stacks \
+  --stack-name pfe-s3-stack \
+  --query "Stacks[0].Outputs[?OutputKey=='WebsiteURL'].OutputValue" \
+  --output text \
+  --profile $PROFILE

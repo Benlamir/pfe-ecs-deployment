@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PFE Milestone 10 : Hebergement Statique Frontend (Amazon S3)'
+
+Resources:
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # S3 Website Hosting activé
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html # Redirection vitale pour le routage React
+      
+      # Désactivation de la sécurité par défaut qui bloque tout accès public
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  # La politique de sécurité qui autorise la lecture (GetObject) à tout le monde sur Internet
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+
+Outputs:
+  WebsiteURL:
+    Description: L'URL publique de ton application React
+    Value: !GetAtt FrontendBucket.WebsiteURL
+  BucketName:
+    Description: Le nom exact du bucket (genere par AWS) pour tes futurs deploiements
+    Value: !Ref FrontendBucket
