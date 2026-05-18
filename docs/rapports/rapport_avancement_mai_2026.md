@@ -25,11 +25,13 @@ Dans une configuration classique, l'ensemble de la pile applicative tourne souve
                         |---> Conteneur Frontend (React)
                         |---> Conteneur Backend (Django)
                         |---> Conteneur Database (PostgreSQL)
+```
 
 ### Approche cible : Architecture 3-Tiers AWS
 
 L'architecture implémentée isole les composants dans des couches distinctes pour maximiser la sécurité et la disponibilité.
 
+```text
 [ Internet ]
             |
             v
@@ -53,6 +55,7 @@ L'architecture implémentée isole les composants dans des couches distinctes po
  |                                 |    --> Amazon RDS (PostgreSQL)   |  |
  |                                 +----------------------------------+  |
  +-----------------------------------------------------------------------+
+```
 
 ### 3. Choix techniques (FinOps) et résolution de difficultés
 
