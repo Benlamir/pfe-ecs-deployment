@@ -29,7 +29,7 @@ jobs:
       - name: Récupération du code
         uses: actions/checkout@v4
 
-      # 3. L'Authentification sans mot de passe (via le rôle IAM créé tout à l'heure)
+      # 3. L'Authentification sans mot de passe (via le rôle IAM)
       - name: Configuration des credentials AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
