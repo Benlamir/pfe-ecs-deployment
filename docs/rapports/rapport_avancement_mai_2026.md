@@ -100,6 +100,7 @@ M1 à M5 : Sécurité IAM, Réseau (VPC/Subnets), Conteneurisation (ECR), Calcul
 
 #### Phase 2 : Architecture 3-Tiers & Intégration (Validée ✅)
 M8 (Couche Données) : Provisionnement RDS PostgreSQL géré et isolé.
+
 M9 (Backend) : Déploiement Django/Gunicorn sur ECS, couplé à RDS via l'injection de variables d'environnement.
 
 M10 (Frontend) : Hébergement React sur S3 avec configuration des Bucket Policies.
