@@ -72,6 +72,7 @@ Face à une erreur HTTP 404 renvoyée par le Load Balancer (ALB) lors de ses tes
 
 Le workflow d'intégration et de déploiement continus automatise le passage du code local vers l'infrastructure AWS.
 
+```text
 [ Code Local ] ---> [ Push GitHub ] ---> [ Workflow CI/CD (GitHub Actions) ]
                                                    |
         +------------------------------------------+------------------------------------------+
@@ -84,7 +85,7 @@ Le workflow d'intégration et de déploiement continus automatise le passage du 
         |                                                                                     |
         v                                                                                     v
 [ Déploiement Zero-Downtime ]                                                          [ Site web à jour (URL S3) ]
-
+```
 ### 5. Explication de la pipeline et problématiques IAM
 
 La pipeline est modulaire et orchestrée via des stacks CloudFormation indépendantes (vpc.yml, rds.yml, alb.yml, s3.yml).
