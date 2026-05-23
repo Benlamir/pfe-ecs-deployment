@@ -47,8 +47,8 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 - [DONE] Roadmap normalized with statuses + acceptance criteria.
 
 ## Session handoff template (must update before closing session)
-- LAST_DONE:
-- NEXT_ACTION:
-- BLOCKERS:
-- FILES_TOUCHED:
-- VERIFY_COMMANDS:
+- LAST_DONE: M7 planning locked; decisions documented; roadmap/next-steps aligned; working branch feat/m7-iac-pipeline active.
+- NEXT_ACTION: Implement M7 Step 1 (stack inventory + dependency order) and create IaC workflow skeleton.
+- BLOCKERS: Container cannot access host SSH keys (host handles push/pull/merge).
+- FILES_TOUCHED: docs/DECISIONS.md, docs/NEXT_STEPS.md, docs/RUNBOOK.md, docs/Roadmap.md.
+- VERIFY_COMMANDS: git status --short ; git log --oneline -n 5 ; confirm branch = feat/m7-iac-pipeline
