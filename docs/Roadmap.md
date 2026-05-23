@@ -1,44 +1,94 @@
-**Phase 1 : Fondations (Validée ✅)**
+# Roadmap d'exécution — PFE AWS 3-Tiers
 
-- **M1 :** IAM & Sécurité de base.
-- **M2 :** Réseau (VPC, Subnets publics/privés).
-- **M3 :** Conteneurisation (Docker, Elastic Container Registry).
-- **M4 :** Calcul Serverless (ECS Fargate, Security Groups).
-- **M5 :** Distribution du trafic (Application Load Balancer, Target Groups).
+Objectif global: déployer et opérer une architecture 3-tiers AWS (React + Django + RDS) avec IaC, CI/CD, sécurité et observabilité de niveau production.
 
-**Phase 2 : Automatisation & DevOps (Validée ✅)**
+Légende: [DONE] [IN_PROGRESS] [PENDING]
 
-- **Milestone 6 : CI/CD avec GitHub Actions (Notre prochaine étape)**
-    - *Objectif :* Zéro déploiement manuel. Un `git push` met à jour l'application en ligne.
-    - *Concepts clés :* Authentification AWS via OIDC (OpenID Connect - la norme de sécurité pour ne pas stocker de clés en dur dans GitHub), automatisation du `docker build` et `docker push`, et mise à jour de la définition de tâche ECS.
-- **Milestone 7 : Infrastructure as Code (Pipeline IaC)**
-    - *Objectif :* Automatiser également le déploiement de tes fichiers CloudFormation (`vpc.yml`, `ecs.yml`, `alb.yml`) via GitHub Actions.
+## Phase 1 — Fondations [DONE]
 
-#### Phase 2.5 : Architecture 3-Tiers & Intégration (Le plan d'attaque)
+- [DONE] M1 — IAM & sécurité de base
+- [DONE] M2 — Réseau (VPC, subnets publics/privés)
+- [DONE] M3 — Conteneurisation (Docker, ECR)
+- [DONE] M4 — Calcul serverless (ECS Fargate, Security Groups)
+- [DONE] M5 — Distribution du trafic (ALB, Target Groups)
 
-- **Milestone 8 : La Couche Données (Amazon RDS)**
-    - *Objectif :* Provisionner une base de données relationnelle (PostgreSQL ou MySQL) gérée par AWS dans tes sous-réseaux privés.
-    - *Concept SAA :* Séparation du calcul (Fargate) et du stockage (RDS).
-- **Milestone 9 : Le Moteur Backend (Django sur ECS)**
-    - *Objectif :* Rédiger le `Dockerfile` de production pour le backend Python (avec un serveur WSGI comme Gunicorn), et mettre à jour ton infrastructure (`ecs.yml`) pour que le conteneur puisse communiquer avec la base RDS.
-    - *Concept SAA :* Variables d'environnement, Security Groups (autoriser Fargate à parler à RDS).
-- **Milestone 10 : L'Hébergement Statique (Frontend React sur S3)**
-    - *Objectif :* Créer un nouveau fichier d'infrastructure (`s3.yml`) pour provisionner un bucket S3 configuré pour l'hébergement web statique.
-    - *Concept SAA :* S3 Static Website Hosting, Bucket Policies (Sécurité d'accès).
-- **Milestone 11 : Le Pipeline CI/CD Définitif (GitHub Actions)**
-    - *Objectif :* Modifier ton `deploy.yml` pour qu'il fasse deux choses en parallèle lors d'un `git push` :
-        1. Compiler le React et l'envoyer sur le Bucket S3.
-        2. Construire l'image Django, la pousser sur ECR, et mettre à jour ECS.
+## Phase 2 — Automatisation DevOps [IN_PROGRESS]
 
-**Phase 3 : Observabilité & Sécurité Avancée**
+- [DONE] M6 — CI/CD backend avec GitHub Actions + OIDC + déploiement ECS
+  - Objectif: zéro déploiement manuel backend.
+  - Critères d'acceptation:
+    1) Un push sur main déclenche build/push ECR.
+    2) Le déploiement ECS référence une image immuable (tag SHA).
+    3) Le workflow attend `services-stable` sans erreur.
 
-- **Milestone 12 : Monitoring (CloudWatch & SNS)**
-    - *Objectif :* Savoir quand l'application souffre sans avoir à regarder l'écran.
-    - *Concepts SAA :* Création d'alarmes sur la consommation CPU/RAM de Fargate, envoi d'alertes par email via Simple Notification Service (SNS).
-- **Milestone 13 : Gestion des Secrets (AWS Secrets Manager)**
-    - *Objectif :* Retirer toute variable sensible (comme les mots de passe) du code et les injecter dynamiquement dans le conteneur au démarrage.
+- [PENDING] M7 — Pipeline IaC (CloudFormation)
+  - Objectif: automatiser le déploiement des stacks (`network.yml`, `alb.yml`, `ecs.yml`, `rds.yml`, `s3.yml`).
+  - Critères d'acceptation:
+    1) Validation CloudFormation en CI.
+    2) Déploiement par environnement avec garde-fous (review/approval).
+    3) Changements d'infra traçables et rollbackables.
 
-**Phase 4 : Production (Optionnelle - L'ex Option A repoussée)**
+## Phase 2.5 — Intégration 3-Tiers [PENDING]
 
-- **Milestone 14 : HTTPS & DNS (Route 53 & ACM)**
-    - *Objectif :* Achat d'un domaine, certificat SSL, et sécurisation de l'ALB pour une exposition publique professionnelle.
+- [PENDING] M8 — Couche données (Amazon RDS)
+  - Objectif: provisionner PostgreSQL managé dans subnets privés.
+  - Critères d'acceptation:
+    1) Instance RDS privée accessible uniquement depuis SG applicatif.
+    2) Connexion applicative validée depuis ECS.
+    3) Sauvegarde automatique activée.
+
+- [PENDING] M9 — Backend Django sur ECS avec RDS
+  - Objectif: exécuter Django/Gunicorn en production avec variables d'environnement propres.
+  - Critères d'acceptation:
+    1) API répond derrière ALB.
+    2) Migrations DB exécutables sans intervention manuelle ad hoc.
+    3) Healthcheck applicatif stable.
+
+- [PENDING] M10 — Frontend React sur S3
+  - Objectif: héberger le frontend en statique sur S3.
+  - Critères d'acceptation:
+    1) Build React publié sur bucket S3 cible.
+    2) Politique d'accès bucket conforme au mode d'exposition choisi.
+    3) Frontend joignable et fonctionnel.
+
+- [PENDING] M11 — Pipeline CI/CD unifié (frontend + backend)
+  - Objectif: sur un push, déployer frontend (S3) et backend (ECS/ECR).
+  - Critères d'acceptation:
+    1) Jobs parallèles frontend/backend.
+    2) Échec d'un job = statut global en échec.
+    3) Traçabilité des versions déployées (SHA commit).
+
+## Phase 3 — Sécurité & Observabilité avancées [PENDING]
+
+- [PENDING] M12 — Monitoring (CloudWatch + SNS)
+  - Objectif: alerter proactivement sur l'état du service.
+  - Critères d'acceptation:
+    1) Alarmes CPU/RAM ECS définies.
+    2) Notifications SNS opérationnelles.
+    3) Procédure de triage documentée.
+
+- [PENDING] M13 — Gestion des secrets (AWS Secrets Manager)
+  - Objectif: retirer les secrets du code/scripts versionnés.
+  - Critères d'acceptation:
+    1) Identifiants DB stockés dans Secrets Manager.
+    2) Injection runtime des secrets dans ECS.
+    3) Rotation et révocation documentées.
+
+Note d'ordre d'exécution recommandé:
+- M13 doit démarrer dès que possible avant exposition plus large en production.
+- Un socle minimal M12 (logs/alertes critiques) doit démarrer en parallèle de M11.
+
+## Phase 4 — Production [PENDING]
+
+- [PENDING] M14 — HTTPS & DNS (Route 53 + ACM)
+  - Objectif: exposition publique propre via domaine et TLS.
+  - Critères d'acceptation:
+    1) Certificat ACM validé et attaché à l'ALB.
+    2) Enregistrements Route 53 corrects.
+    3) Accès HTTPS fonctionnel bout-en-bout.
+
+## Prochaine action concrète
+
+1) Finaliser M7 (pipeline IaC) avec validation + déploiement contrôlé.
+2) Préparer M8/M9 avec schéma de connectivité SG et stratégie migrations.
+3) Mettre en place la première version de M13 (secrets DB hors scripts locaux).
