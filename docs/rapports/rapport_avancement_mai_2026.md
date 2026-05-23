@@ -1,35 +1,49 @@
 # RAPPORT D'AVANCEMENT TECHNIQUE : PROJET DE FIN D'ÉTUDES
 
-**Sujet :** Déploiement automatisé d'une architecture Cloud 3-Tiers hautement disponible sur AWS via Infrastructure as Code (IaC) et CI/CD  
-**Étudiant :** Oussama Benlamirate  
-**Filière :** Licence Professionnelle Systèmes, Réseaux et Cloud (ISRC)  
+Sujet : Déploiement automatisé d'une architecture Cloud 3-Tiers hautement disponible sur AWS via Infrastructure as Code (IaC) et CI/CD  
+Étudiant : Oussama Benlamirate  
+Filière : Licence Professionnelle Systèmes, Réseaux et Cloud (ISRC)
 
 ---
 
-## 1. Résumé et pertinence du projet
+## 1) Résumé et pertinence du projet
 
-L'objectif de ce PFE est de concevoir, sécuriser et automatiser le déploiement d'une application web moderne (React en Frontend, API Django/Gunicorn en Backend, PostgreSQL en Base de données) sur Amazon Web Services (AWS). Le projet repose sur le découplage complet des composants et l'automatisation intégrale via l'Infrastructure as Code (IaC) avec AWS CloudFormation, éliminant toute configuration manuelle en production.
+L'objectif du PFE est de concevoir, sécuriser et automatiser le déploiement d'une application web moderne sur AWS :
+- Frontend : React
+- Backend : Django REST + Gunicorn
+- Base de données : PostgreSQL
 
-Ce projet valide ma transition vers l'ingénierie Cloud. Il met en pratique les concepts avancés de l'architecture AWS (VPC, IAM, ECS Fargate, S3) pour concevoir une infrastructure scalable, résiliente et conforme aux standards de l'industrie (certification AWS SAA).
+Le projet repose sur :
+- le découplage complet des couches (présentation, application, données),
+- l'Infrastructure as Code avec AWS CloudFormation,
+- l'automatisation CI/CD avec GitHub Actions,
+- l'authentification fédérée AWS OIDC (sans clé statique stockée dans GitHub).
+
+Ce projet matérialise ma transition vers un rôle d'ingénieur Cloud, avec mise en pratique des concepts AWS avancés (IAM, VPC, ECS Fargate, ALB, RDS, S3, observabilité).
 
 ---
 
-## 2. Architecture AWS vs Conteneur Standard
+## 2) Architecture cible : comparaison et choix
 
-### Approche standard (Monolithe)
-Dans une configuration classique, l'ensemble de la pile applicative tourne souvent sur un serveur unique.
-* **Limites :** Point de défaillance unique (SPOF), ressources partagées, scalabilité complexe.
+### 2.1 Approche standard (monolithe/serveur unique)
+Dans une configuration classique, plusieurs composants tournent sur une même machine.
+
+Limites :
+- point de défaillance unique (SPOF),
+- isolation faible,
+- montée en charge plus complexe,
+- couplage opérationnel fort.
 
 ```text
 [ Internet ] ---> [ Serveur Unique / VM ]
-                        |---> Conteneur Frontend (React)
-                        |---> Conteneur Backend (Django)
-                        |---> Conteneur Database (PostgreSQL)
+                        |---> Frontend
+                        |---> Backend
+                        |---> Base de données
 ```
 
-### Approche cible : Architecture 3-Tiers AWS
+### 2.2 Approche cible : architecture 3-Tiers AWS
 
-L'architecture implémentée isole les composants dans des couches distinctes pour maximiser la sécurité et la disponibilité.
+L'architecture implémentée isole les composants par couche pour améliorer sécurité, disponibilité et maintenabilité.
 
 ```text
 [ Internet ]
@@ -41,74 +55,125 @@ L'architecture implémentée isole les composants dans des couches distinctes po
  |  +-----------------------+      +----------------------------------+  |
  |  | Couche Présentation   |      | VPC (10.0.0.0/16)                |  |
  |  | Amazon S3             |      |                                  |  |
- |  | (Hébergement Statique |      |  [ Sous-réseaux Publics ]        |  |
- |  |  React Web)           |      |    --> Application Load Balancer |  |
- |  +-----------------------+      |                                  |  |
+ |  | (Site React statique) |      |  [ Subnets Publics ]             |  |
+ |  +-----------------------+      |    --> Application Load Balancer |  |
+ |                                 |                                  |  |
  |                                 |                   |              |  |
  |                                 |                   v              |  |
- |                                 |  [ Sous-réseaux Privés ]         |  |
- |                                 |    --> AWS ECS Fargate           |  |
- |                                 |        (Conteneurs Django)       |  |
+ |                                 |  [ Subnets Privés ]              |  |
+ |                                 |    --> ECS Fargate (Django)      |  |
  |                                 |                   |              |  |
  |                                 |                   v              |  |
- |                                 |  [ Sous-réseaux Données ]        |  |
+ |                                 |  [ Subnets Données ]             |  |
  |                                 |    --> Amazon RDS (PostgreSQL)   |  |
  |                                 +----------------------------------+  |
  +-----------------------------------------------------------------------+
 ```
 
-### 3. Choix techniques (FinOps) et résolution de difficultés
+---
 
-Une attention stricte a été portée à la consommation des ressources Cloud (FinOps) :
+## 3) Choix techniques (FinOps) et difficultés résolues
 
-* **Frontend Serverless :** Utilisation d'Amazon S3 (paiement au stockage) au lieu d'une instance EC2 24h/24 pour héberger l'application React.
+### 3.1 Choix FinOps
+- Frontend serverless sur S3 : coûts corrélés au stockage/traffic, sans VM 24/7.
+- Backend sur ECS Fargate : facturation CPU/RAM à l'usage.
 
-* **Calcul Élastique :** AWS ECS Fargate provisionne les ressources CPU/RAM à la seconde, uniquement lorsque les conteneurs backend tournent.
+### 3.2 Difficulté technique principale
+Problème rencontré : erreur HTTP 404 sur health check ALB.
 
-**Difficultés rencontrées et résolution :**
-Face à une erreur HTTP 404 renvoyée par le Load Balancer (ALB) lors de ses tests de santé, l'infrastructure n'a pas été modifiée. Une approche "Dev" a été privilégiée : une route dédiée /health/ a été codée dans l'API Django pour répondre explicitement au statut 200 OK. L'ALB valide désormais la viabilité des conteneurs, permettant des déploiements sans interruption (Zero-Downtime Deployment  ).
+Résolution appliquée :
+- pas de contournement infra fragile,
+- correction applicative via route dédiée `/health/` retournant `200 OK`.
 
-### 4. Diagramme de la pipeline CI/CD
+Résultat :
+- les health checks ALB valident correctement les tâches,
+- déploiements sans interruption sur ECS (rolling deployment) stabilisés.
 
-Le workflow d'intégration et de déploiement continus automatise le passage du code local vers l'infrastructure AWS.
+---
+
+## 4) Pipeline CI/CD : état actuel et cible
+
+### 4.1 État actuel (opérationnel)
+- Pipeline backend fonctionnelle sur GitHub Actions.
+- Build/push image Docker vers ECR.
+- Déploiement ECS avec image immuable (tag SHA commit), via :
+  1) récupération de la task definition active,
+  2) injection du nouvel `image URI` taggé SHA,
+  3) enregistrement d'une nouvelle révision,
+  4) `update-service` + attente `services-stable`.
+- Authentification AWS via OIDC (zéro clé statique).
+
+### 4.2 Cible proche (en cours)
+- Pipeline IaC CloudFormation (M7) avec validation + déploiement contrôlé.
+- Pipeline unifiée frontend + backend (M11).
 
 ```text
-[ Code Local ] ---> [ Push GitHub ] ---> [ Workflow CI/CD (GitHub Actions) ]
-                                                   |
-        +------------------------------------------+------------------------------------------+
-        | (Branche Backend)                                                                   | (Branche Frontend)
-        v                                                                                     v
-[ Docker Build & Push (Amazon ECR) ]                                                   [ npm run build ]
-        |                                                                                     |
-        v                                                                                     v
-[ AWS ECS update-service ]                                                             [ aws s3 sync ]
-        |                                                                                     |
-        v                                                                                     v
-[ Déploiement Zero-Downtime ]                                                          [ Site web à jour (URL S3) ]
+[ Code Local ] -> [ Push GitHub ] -> [ Workflow GitHub Actions ]
+                                        |
+                 +----------------------+----------------------+
+                 |                                             |
+                 v                                             v
+       [ Job Backend ]                                [ Job Frontend ]
+       Build + Push ECR                              Build React
+       Register Task Definition                      Sync S3
+       Update ECS Service                            Publication statique
 ```
-### 5. Explication de la pipeline et problématiques IAM
 
-La pipeline est modulaire et orchestrée via des stacks CloudFormation indépendantes (vpc.yml, rds.yml, alb.yml, s3.yml).
+---
 
-Problématique IAM résolue :
-L'implémentation de la stack S3 a initialement échoué en ROLLBACK_COMPLETE. Le rôle d'exécution de CloudFormation, configuré selon le principe du moindre privilège, ne possédait pas l'action s3:CreateBucket. L'autorisation a été attachée dynamiquement via l'AWS CLI, permettant la création sécurisée du bucket et l'ouverture de l'accès public en lecture (s3:GetObject) pour le frontend.
+## 5) Problématique IAM rencontrée
 
-### 6. Roadmap Globale et État d'Avancement
+Lors de l'ajout de la stack S3, un échec `ROLLBACK_COMPLETE` est survenu.
 
-#### Phase 1 : Fondations de l'Infrastructure (Validée ✅)
-M1 à M5 : Sécurité IAM, Réseau (VPC/Subnets), Conteneurisation (ECR), Calcul Serverless (ECS Fargate) et Distribution (ALB).
+Cause :
+- le rôle d'exécution CloudFormation (principe du moindre privilège) ne possédait pas `s3:CreateBucket`.
 
-#### Phase 2 : Architecture 3-Tiers & Intégration (Validée ✅)
-M8 (Couche Données) : Provisionnement RDS PostgreSQL géré et isolé.
+Correction :
+- ajout contrôlé de l'autorisation requise,
+- reprise du déploiement avec succès.
 
-M9 (Backend) : Déploiement Django/Gunicorn sur ECS, couplé à RDS via l'injection de variables d'environnement.
+Note sécurité :
+- le frontend statique nécessite un accès public en lecture sur les objets publiés,
+- les permissions d'écriture restent restreintes,
+- la policy doit rester minimale et explicitement justifiée.
 
-M10 (Frontend) : Hébergement React sur S3 avec configuration des Bucket Policies.
+---
 
-#### Phase 3 : Automatisation Globale CI/CD (En cours ⏳ - Focus actuel)
-M6 & M11 : Pipeline automatisée via GitHub Actions. Un git push déclenche la compilation et le déploiement, avec authentification sécurisée (Zéro clé en dur) via AWS OIDC (OpenID Connect).
+## 6) État d'avancement par phases
 
-M7 : Pipeline IaC pour un déploiement 100% automatisé de l'infrastructure CloudFormation.
+### Phase 1 — Fondations Infrastructure [VALIDÉE]
+- M1 à M5 : IAM, VPC/Subnets, ECR, ECS Fargate, ALB.
 
-#### Phase 4 : Observabilité, Sécurité Avancée & Production (À venir 📅)
-M12 à M14 : Monitoring CloudWatch (Alarmes CPU/RAM), injection sécurisée de secrets (AWS Secrets Manager) et distribution globale du frontend en HTTPS via Amazon CloudFront.
+### Phase 2 — Automatisation DevOps [EN COURS]
+- M6 [FAIT] : CI/CD backend GitHub Actions + OIDC + déploiement ECS immuable (SHA).
+- M7 [EN COURS] : pipeline IaC CloudFormation (validation + déploiement contrôlé).
+
+### Phase 2.5 — Intégration 3-Tiers [PARTIELLEMENT VALIDÉE]
+- M8 [FAIT] : RDS PostgreSQL provisionné en zone privée.
+- M9 [FAIT/PERFECTIBLE] : backend Django/Gunicorn relié à RDS.
+- M10 [FAIT/PERFECTIBLE] : frontend React hébergé sur S3.
+- M11 [EN COURS] : pipeline unifiée frontend + backend.
+
+### Phase 3 — Observabilité & Sécurité avancée [À DÉMARRER]
+- M12 : monitoring CloudWatch + alerting SNS.
+- M13 : gestion des secrets via AWS Secrets Manager (priorité sécurité).
+
+### Phase 4 — Production [À VENIR]
+- M14 : HTTPS + DNS (ACM, Route 53, et exposition sécurisée).
+
+---
+
+## 7) Prochaines actions prioritaires
+
+1. Finaliser M7 :
+   - validation templates avec `cfn-lint` + `validate-template`,
+   - déploiement IaC contrôlé (garde-fou d'approbation).
+2. Finaliser M11 : pipeline unifiée frontend/backend.
+3. Démarrer M13 rapidement : externalisation des secrets sensibles.
+4. Ajouter M12 minimal en parallèle : alertes critiques CPU/RAM/erreurs service.
+
+---
+
+## 8) Conclusion
+
+Le projet a dépassé la simple mise en ligne d'une application : il démontre une progression vers une architecture Cloud industrialisée, traçable et sécurisée. Les fondations techniques sont solides, la chaîne backend est opérationnelle, et les prochains jalons (IaC pipeline complète, secrets management, observabilité) visent la consolidation d'un niveau production.
