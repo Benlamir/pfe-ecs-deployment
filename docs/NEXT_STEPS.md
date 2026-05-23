@@ -7,13 +7,16 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 - Milestone focus: M7 (Pipeline IaC CloudFormation)
 
 ## Immediate (execution order)
-- [IN_PROGRESS] M7 — Add/validate IaC pipeline for CloudFormation updates
+- [IN_PROGRESS] M7 — Add/validate IaC pipeline for CloudFormation updates (single environment v1)
   - Scope:
     - Validate templates in CI (`network.yml`, `alb.yml`, `ecs.yml`, `rds.yml`, `s3.yml`).
-    - Add controlled deploy workflow (approval/review gate).
+    - Validation uses BOTH `cfn-lint` and `aws cloudformation validate-template`.
+    - Add controlled deploy workflow with BOTH triggers:
+      1) auto on `main` behind approval gate
+      2) manual `workflow_dispatch` fallback
     - Ensure traceability and rollback path.
   - Acceptance:
-    1) CI validation job runs on PR/push and fails on invalid templates.
+    1) CI validation job runs on PR/push and fails on invalid templates/lint errors.
     2) Deploy job is gated (manual approval or protected environment).
     3) Stack updates are logged and reproducible.
 
