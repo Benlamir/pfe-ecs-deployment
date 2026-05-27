@@ -1,0 +1,67 @@
+name: Validate Infrastructure Templates
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/**.yml'
+      - '.github/workflows/validate-infra.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/**.yml'
+      - '.github/workflows/validate-infra.yml'
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: validate-infra-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cfn-lint:
+    name: CloudFormation Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install cfn-lint
+        run: pip install cfn-lint
+        
+      - name: Run cfn-lint
+        run: cfn-lint infrastructure/*.yml
+
+  aws-validate:
+    name: AWS Native Validation
+    needs: cfn-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate CloudFormation Templates
+        run: |
+          set -e
+          for template in infrastructure/*.yml; do
+            echo "Validating $template..."
+            aws cloudformation validate-template --template-body "file://$template"
+          done
