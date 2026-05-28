@@ -109,20 +109,20 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
             
-      - name: Deploy ECS Stack
-        run: |
-          aws cloudformation deploy \
-            --template-file infrastructure/ecs.yml \
-            --stack-name pfe-ecs-stack \
-            --capabilities CAPABILITY_NAMED_IAM \
-            --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
-            --no-fail-on-empty-changeset
-
       - name: Deploy RDS Stack
         run: |
           aws cloudformation deploy \
             --template-file infrastructure/rds.yml \
             --stack-name pfe-rds-stack \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
+            --no-fail-on-empty-changeset
+
+      - name: Deploy ECS Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file infrastructure/ecs.yml \
+            --stack-name pfe-ecs-stack \
             --capabilities CAPABILITY_NAMED_IAM \
             --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
             --no-fail-on-empty-changeset
