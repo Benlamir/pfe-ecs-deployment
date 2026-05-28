@@ -27,6 +27,8 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: GitHubActionsDeployRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
       # La politique de confiance : Seul TON repository a le droit de prendre ce rôle
       AssumeRolePolicyDocument:
         Statement:
