@@ -44,7 +44,7 @@ jobs:
         
       - name: Run cfn-lint
         # Ignore W1011 since secrets management (M13) is planned for later
-        run: cfn-lint --ignore-checks W1011 infrastructure/*.yml
+        run: cfn-lint -t infrastructure/*.yml --ignore-checks W1011
 
   aws-validate:
     name: AWS Native Validation
