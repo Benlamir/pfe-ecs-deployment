@@ -98,6 +98,11 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
 
 Outputs:
+  VpcCidr:
+    Description: Plage d'adresses CIDR du VPC
+    Value: !Ref VpcCIDR
+    Export:
+      Name: PfeVpcCidr
   VpcId:
     Description: ID du VPC créé
     Value: !Ref PfeVPC

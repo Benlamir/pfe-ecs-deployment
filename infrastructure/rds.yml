@@ -2,13 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Couche de donnees - Base PostgreSQL RDS (Free Tier) pour l'application CFC.
 
 Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-  VpcCidr:
-    Type: String
-    Default: 10.0.0.0/16
+
   DBName:
     Type: String
     Default: cfcdb
@@ -24,18 +18,20 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Autoriser le trafic PostgreSQL
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue PfeVpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          CidrIp: !Ref VpcCidr
+          CidrIp: !ImportValue PfeVpcCidr
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Sous-reseaux pour le cluster RDS
-      SubnetIds: !Ref SubnetIds
+      SubnetIds: 
+        - !ImportValue PfePublicSubnet1Id
+        - !ImportValue PfePublicSubnet2Id
 
   CfcDatabase:
     Type: AWS::RDS::DBInstance

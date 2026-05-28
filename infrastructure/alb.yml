@@ -1,13 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'PFE Milestone 5 : Application Load Balancer (ALB)'
 
-Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: ID du VPC
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: IDs des sous-réseaux publics pour l'ALB
 
 Resources:
   # 1. Le Pare-feu de l'ALB (Le vigile à l'entrée)
@@ -15,7 +8,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Autorise le trafic HTTP entrant vers ALB
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue PfeVpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -31,7 +24,9 @@ Resources:
     Properties:
       Name: pfe-app-alb
       Scheme: internet-facing
-      Subnets: !Ref SubnetIds
+      Subnets: 
+        - !ImportValue PfePublicSubnet1Id
+        - !ImportValue PfePublicSubnet2Id
       SecurityGroups:
         - !Ref AlbSecurityGroup
       Type: application
@@ -41,7 +36,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: pfe-app-tg
-      VpcId: !Ref VpcId
+      VpcId: !ImportValue PfeVpcId
       Port: 8000
       Protocol: HTTP
       TargetType: ip

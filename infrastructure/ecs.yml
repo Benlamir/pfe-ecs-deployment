@@ -2,12 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: 'PFE Milestone 4 : Cluster ECS Fargate et Service Applicatif'
 
 Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: ID du VPC créé au Milestone 2
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: IDs des sous-réseaux publics
   ContainerPort:
     Type: Number
     Default: 8000
@@ -26,7 +20,7 @@ Resources:
       Type: AWS::EC2::SecurityGroup
       Properties:
         GroupDescription: Autorise le trafic entrant uniquement depuis ALB
-        VpcId: !Ref VpcId
+        VpcId: !ImportValue PfeVpcId
         SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: !Ref ContainerPort
@@ -99,7 +93,9 @@ Resources:
           AssignPublicIp: ENABLED
           SecurityGroups:
             - !Ref EcsSecurityGroup
-          Subnets: !Ref SubnetIds
+          Subnets:
+            - !ImportValue PfePublicSubnet1Id
+            - !ImportValue PfePublicSubnet2Id
       LoadBalancers:
         - ContainerName: cfc-backend-container
           ContainerPort: !Ref ContainerPort
