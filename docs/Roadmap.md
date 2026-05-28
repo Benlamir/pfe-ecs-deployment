@@ -12,7 +12,7 @@ Légende: [DONE] [IN_PROGRESS] [PENDING]
 - [DONE] M4 — Calcul serverless (ECS Fargate, Security Groups)
 - [DONE] M5 — Distribution du trafic (ALB, Target Groups)
 
-## Phase 2 — Automatisation DevOps [IN_PROGRESS]
+## Phase 2 — Automatisation DevOps [DONE]
 
 - [DONE] M6 — CI/CD backend avec GitHub Actions + OIDC + déploiement ECS
   - Objectif: zéro déploiement manuel backend.
@@ -21,16 +21,16 @@ Légende: [DONE] [IN_PROGRESS] [PENDING]
     2) Le déploiement ECS référence une image immuable (tag SHA).
     3) Le workflow attend `services-stable` sans erreur.
 
-- [PENDING] M7 — Pipeline IaC (CloudFormation)
+- [DONE] M7 — Pipeline IaC (CloudFormation)
   - Objectif: automatiser le déploiement des stacks (`network.yml`, `alb.yml`, `ecs.yml`, `rds.yml`, `s3.yml`).
   - Critères d'acceptation:
     1) Validation CloudFormation en CI.
     2) Déploiement par environnement avec garde-fous (review/approval).
     3) Changements d'infra traçables et rollbackables.
 
-## Phase 2.5 — Intégration 3-Tiers [PENDING]
+## Phase 2.5 — Intégration 3-Tiers [IN_PROGRESS]
 
-- [PENDING] M8 — Couche données (Amazon RDS)
+- [IN_PROGRESS] M8 — Couche données (Amazon RDS)
   - Objectif: provisionner PostgreSQL managé dans subnets privés.
   - Critères d'acceptation:
     1) Instance RDS privée accessible uniquement depuis SG applicatif.
@@ -89,6 +89,5 @@ Note d'ordre d'exécution recommandé:
 
 ## Prochaine action concrète
 
-1) Finaliser M7 (pipeline IaC) avec validation + déploiement contrôlé.
-2) Préparer M8/M9 avec schéma de connectivité SG et stratégie migrations.
-3) Mettre en place la première version de M13 (secrets DB hors scripts locaux).
+1) Déployer la couche de données RDS (M8) et s'assurer que l'instance est provisionnée dans les subnets privés.
+2) Connecter le backend Django à RDS sur ECS (M9).
