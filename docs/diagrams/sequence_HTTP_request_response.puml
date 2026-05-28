@@ -1,0 +1,45 @@
+@startuml
+skinparam maxMessageSize 150
+skinparam defaultFontName Arial
+autonumber
+
+actor "Utilisateur\n(Navigateur Web)" as User
+
+box "Couche Présentation (Edge & Frontend)" #LightCyan
+    participant "AWS CloudFront\n(CDN)" as CDN
+    participant "Amazon S3\n(React Statique)" as S3
+end box
+
+box "Couche Application (Backend - Sous-réseau Public/Privé)" #LightYellow
+    participant "ALB Listener\n(Port 80/443)" as ALB
+    participant "Target Group\n(Registre Dynamique)" as TG
+    participant "ECS Fargate\n(Conteneurs Django)" as ECS
+end box
+
+box "Couche Données (Sous-réseau Données)" #LightGreen
+    database "Amazon RDS\n(PostgreSQL)" as RDS
+end box
+
+== Phase 1 : Chargement de l'Application React (Frontend) ==
+User -> CDN : Requête HTTP GET (ex: /index.html)
+CDN -> S3 : Récupération des assets (si non mis en cache)
+S3 --> CDN : Fichiers statiques (HTML, CSS, JS)
+CDN --> User : Affichage de l'interface React sur le navigateur
+
+== Phase 2 : Requête API vers le Backend (Le Flux Réseau) ==
+User -> ALB : Requête HTTP GET/POST (ex: /api/data) via Axios/Fetch
+note right of ALB: L'Écouteur (Listener) intercepte le trafic
+ALB -> TG : Règle de transfert (Forward Action)
+note right of TG: Consulte l'annuaire des IPs saines\npour le port 8000
+TG -> ECS : Délivre la requête au conteneur actif
+
+== Phase 3 : Traitement Applicatif & Base de Données ==
+ECS -> RDS : Exécution de la requête SQL (Lecture ou Écriture)
+note right of ECS: Le groupe de sécurité RDS\nn'autorise que l'IP de Fargate
+RDS --> ECS : Retour du jeu de résultats (Données)
+
+== Phase 4 : Retour de la Réponse HTTP ==
+ECS --> TG : Réponse HTTP 200 OK (Payload JSON)
+TG --> ALB : Transmission du flux sortant
+ALB --> User : Réception des données et mise à jour de l'UI React
+@enduml
