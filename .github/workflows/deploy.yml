@@ -5,9 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'app/**'
-      - 'Dockerfile'
-      - '.github/workflows/**'
+      - 'backend/**'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 env:
@@ -52,7 +51,7 @@ jobs:
           IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
           echo "Construction de l'image Docker: $IMAGE_URI"
-          docker build -t "$IMAGE_URI" .
+          docker build -t "$IMAGE_URI" ./backend
 
           echo "Push de l'image SHA"
           docker push "$IMAGE_URI"
