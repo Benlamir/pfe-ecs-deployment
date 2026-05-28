@@ -7,13 +7,20 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 - Milestone focus: M7 (Pipeline IaC CloudFormation)
 
 ## Immediate (execution order)
-- [IN_PROGRESS] M7 — Add/validate IaC pipeline for CloudFormation updates
+- [IN_PROGRESS] M7 — Add/validate IaC pipeline for CloudFormation updates (single environment v1)
   - Scope:
     - Validate templates in CI (`network.yml`, `alb.yml`, `ecs.yml`, `rds.yml`, `s3.yml`).
-    - Add controlled deploy workflow (approval/review gate).
+    - Validation uses BOTH `cfn-lint` and `aws cloudformation validate-template`.
+    - Add controlled deploy workflow with BOTH triggers:
+      1) auto on `main` behind approval gate
+      2) manual `workflow_dispatch` fallback
     - Ensure traceability and rollback path.
   - Acceptance:
-    1) CI validation job runs on PR/push and fails on invalid templates.
+<<<<<<< Updated upstream
+    1) CI validation job runs on PR/push and fails on invalid templates/lint errors.
+=======
+    1) [DONE] CI validation job runs on PR/push and fails on invalid templates.
+>>>>>>> Stashed changes
     2) Deploy job is gated (manual approval or protected environment).
     3) Stack updates are logged and reproducible.
 
@@ -44,8 +51,16 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 - [DONE] Roadmap normalized with statuses + acceptance criteria.
 
 ## Session handoff template (must update before closing session)
-- LAST_DONE:
-- NEXT_ACTION:
-- BLOCKERS:
-- FILES_TOUCHED:
-- VERIFY_COMMANDS:
+<<<<<<< Updated upstream
+- LAST_DONE: M7 planning locked; decisions documented; roadmap/next-steps aligned; working branch feat/m7-iac-pipeline active.
+- NEXT_ACTION: Implement M7 Step 1 (stack inventory + dependency order) and create IaC workflow skeleton.
+- BLOCKERS: Container cannot access host SSH keys (host handles push/pull/merge).
+- FILES_TOUCHED: docs/DECISIONS.md, docs/NEXT_STEPS.md, docs/RUNBOOK.md, docs/Roadmap.md.
+- VERIFY_COMMANDS: git status --short ; git log --oneline -n 5 ; confirm branch = feat/m7-iac-pipeline
+=======
+- LAST_DONE: Created `.github/workflows/validate-infra.yml` for M7 Step 1.
+- NEXT_ACTION: Add controlled deploy workflow for CloudFormation (M7 Step 2) or start M11.
+- BLOCKERS: None.
+- FILES_TOUCHED: `.github/workflows/validate-infra.yml`, `docs/NEXT_STEPS.md`
+- VERIFY_COMMANDS: Wait for GitHub Actions to trigger and pass on the next push to main.
+>>>>>>> Stashed changes

@@ -38,3 +38,18 @@ Failure patterns
 Security operations
 - If secret was ever committed, rotate immediately.
 - Keep secret-bearing scripts local/untracked.
+
+## End-of-session cost control
+
+Rule
+- If infra was provisioned/updated for tests during the session, run teardown before ending session.
+
+Teardown command
+- ./destroy-infra.sh
+
+Verification
+1. Check CloudFormation stacks status (no active billable test stacks left).
+2. Confirm ECS service/task count is zero for test scope.
+3. Record teardown result in session handoff:
+   - LAST_DONE
+   - VERIFY_COMMANDS
