@@ -30,7 +30,7 @@ Légende: [DONE] [IN_PROGRESS] [PENDING]
 
 ## Phase 2.5 — Intégration 3-Tiers [IN_PROGRESS]
 
-- [IN_PROGRESS] M8 — Couche données (Amazon RDS)
+- [DONE] M8 — Couche données (Amazon RDS)
   - Objectif: provisionner PostgreSQL managé dans subnets privés.
   - Critères d'acceptation:
     1) Instance RDS privée accessible uniquement depuis SG applicatif.
@@ -89,5 +89,5 @@ Note d'ordre d'exécution recommandé:
 
 ## Prochaine action concrète
 
-1) Déployer la couche de données RDS (M8) et s'assurer que l'instance est provisionnée dans les subnets privés.
-2) Connecter le backend Django à RDS sur ECS (M9).
+1) Déployer le code applicatif : Importer le code source de l'application Django (Backend) dans ce dépôt et mettre à jour le `Dockerfile` (M9).
+2) Importer et compiler le code source de l'application React (Frontend) pour le déployer sur S3 (M10).

@@ -42,13 +42,16 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
   - Acceptance: new credentials active; old credentials revoked.
 
 ## Done recently
+- [DONE] M8 — Transition to Cross-Stack References (`!ImportValue`) across all CFN templates (`network.yml`, `alb.yml`, `ecs.yml`, `rds.yml`).
+- [DONE] Secrets Manager/GitHub Secrets integration for `DB_PASSWORD` passed to RDS and ECS dynamically.
+- [DONE] Fixed ECS dependency on RDS in GitHub Actions workflow to resolve deployment sequence.
 - [DONE] Deploy workflow moved to immutable SHA-based ECS rollout.
 - [DONE] `deploy-infra.sh` ignored and removed from Git tracking.
 - [DONE] Roadmap normalized with statuses + acceptance criteria.
 
 ## Session handoff template (must update before closing session)
-- LAST_DONE: Added `deploy-infra` job to `.github/workflows/validate-infra.yml` for M7 Step 2.
-- NEXT_ACTION: Prepare Phase 2.5 (M8 - Amazon RDS integration).
-- BLOCKERS: None.
-- FILES_TOUCHED: `.github/workflows/validate-infra.yml`, `docs/NEXT_STEPS.md`
+- LAST_DONE: Completed M8 by updating all CloudFormation templates to use `!ImportValue` and successfully validating the full infrastructure CI/CD deployment (`validate-infra.yml`) with the Nginx dummy app on Port 8000.
+- NEXT_ACTION: Phase 3 (M9) - Bring in the React frontend codebase and update CI/CD to build/sync to S3. Alternatively, bring in the Django backend codebase.
+- BLOCKERS: None. Waiting on user to import codebase.
+- FILES_TOUCHED: `infrastructure/*.yml`, `.github/workflows/validate-infra.yml`, `Dockerfile`
 - VERIFY_COMMANDS: Wait for GitHub Actions to trigger and pass on the next push to main.
