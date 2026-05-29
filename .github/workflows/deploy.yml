@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
@@ -115,3 +116,53 @@ jobs:
             --region "$AWS_REGION"
 
           echo "Déploiement terminé: $IMAGE_URI"
+
+  deploy-frontend:
+    name: Build and Deploy React Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Configuration des credentials AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: |
+          set -euo pipefail
+          # Récupération dynamique de l'URL du Load Balancer
+          ALB_URL=$(aws cloudformation describe-stacks \
+            --stack-name pfe-alb-stack \
+            --query "Stacks[0].Outputs[?OutputKey=='ALBDNSName'].OutputValue" \
+            --output text)
+          
+          export VITE_API_URL="http://$ALB_URL/api/"
+          
+          npm run build
+
+      - name: Deploy to S3
+        working-directory: ./frontend
+        run: |
+          set -euo pipefail
+          # Récupération dynamique du nom du bucket S3
+          BUCKET_NAME=$(aws cloudformation describe-stacks \
+            --stack-name pfe-s3-stack \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
+            --output text)
+            
+          echo "Déploiement vers s3://$BUCKET_NAME"
+          aws s3 sync dist/ "s3://$BUCKET_NAME" --delete

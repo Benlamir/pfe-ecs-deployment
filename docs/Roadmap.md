@@ -37,21 +37,21 @@ Légende: [DONE] [IN_PROGRESS] [PENDING]
     2) Connexion applicative validée depuis ECS.
     3) Sauvegarde automatique activée.
 
-- [PENDING] M9 — Backend Django sur ECS avec RDS
+- [DONE] M9 — Backend Django sur ECS avec RDS
   - Objectif: exécuter Django/Gunicorn en production avec variables d'environnement propres.
   - Critères d'acceptation:
     1) API répond derrière ALB.
     2) Migrations DB exécutables sans intervention manuelle ad hoc.
     3) Healthcheck applicatif stable.
 
-- [PENDING] M10 — Frontend React sur S3
+- [IN_PROGRESS] M10 — Frontend React sur S3
   - Objectif: héberger le frontend en statique sur S3.
   - Critères d'acceptation:
     1) Build React publié sur bucket S3 cible.
     2) Politique d'accès bucket conforme au mode d'exposition choisi.
     3) Frontend joignable et fonctionnel.
 
-- [PENDING] M11 — Pipeline CI/CD unifié (frontend + backend)
+- [IN_PROGRESS] M11 — Pipeline CI/CD unifié (frontend + backend)
   - Objectif: sur un push, déployer frontend (S3) et backend (ECS/ECR).
   - Critères d'acceptation:
     1) Jobs parallèles frontend/backend.
