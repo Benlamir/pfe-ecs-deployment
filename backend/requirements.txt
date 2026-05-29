@@ -1,0 +1,11 @@
+Django>=5.0,<6.0
+djangorestframework>=3.14
+psycopg2-binary>=2.9    # Connecteur PostgreSQL
+python-dotenv>=1.0      # Pour lire les variables d'env
+django-cors-headers>=4.3 # OBLIGATOIRE pour que React puisse parler à Django
+Pillow>=10.0            # Pour gérer les images/logos (Establishment logo)
+drf-yasg>=1.21          # (Optionnel) Pour générer la doc Swagger de ton API auto
+djangorestframework-simplejwt>=5.3.0 # Authentification JWT
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
+dj-database-url>=2.1.0

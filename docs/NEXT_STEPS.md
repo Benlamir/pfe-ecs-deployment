@@ -50,8 +50,11 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 - [DONE] Roadmap normalized with statuses + acceptance criteria.
 
 ## Session handoff template (must update before closing session)
-- LAST_DONE: Completed M8 by updating all CloudFormation templates to use `!ImportValue` and successfully validating the full infrastructure CI/CD deployment (`validate-infra.yml`) with the Nginx dummy app on Port 8000.
-- NEXT_ACTION: Phase 3 (M9) - Bring in the React frontend codebase and update CI/CD to build/sync to S3. Alternatively, bring in the Django backend codebase.
-- BLOCKERS: None. Waiting on user to import codebase.
-- FILES_TOUCHED: `infrastructure/*.yml`, `.github/workflows/validate-infra.yml`, `Dockerfile`
-- VERIFY_COMMANDS: Wait for GitHub Actions to trigger and pass on the next push to main.
+- LAST_DONE: 
+  1. Created `validate-infra.yml` for CloudFormation validation. 
+  2. Migrated `cfc-project-core` (backend & frontend) into `pfe-app` on branch `M9-backend-integration`.
+  3. Updated `settings.py` for cloud-native deployment (env vars & dj-database-url).
+- NEXT_ACTION: Merge `M9-backend-integration` PR to `main` and verify Fargate deployment. Then start Phase 3 (M10/M11) - Frontend React S3 Deployment pipeline.
+- BLOCKERS: None. Awaiting PR merge.
+- FILES_TOUCHED: `docs/journal/*.md`, `backend/cfc_core/settings.py`, `.github/workflows/deploy.yml`
+- VERIFY_COMMANDS: Monitor GitHub Actions after PR merge.

@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --color-emerald-50: #ecfdf5;
+    --color-emerald-100: #d1fae5;
+    --color-emerald-200: #a7f3d0;
+    --color-emerald-300: #6ee7b7;
+    --color-emerald-400: #34d399;
+    --color-emerald-500: #10b981;
+    --color-emerald-600: #059669;
+    --color-emerald-700: #047857;
+    --color-emerald-800: #065f46;
+    /* The requested deep emerald green */
+    --color-emerald-900: #064e3b;
+    --color-emerald-950: #022c22;
+
+    --font-sans: 'Inter', 'Montserrat', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Montserrat', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+    :root {
+        --background: #fafaf9;
+        /* Pure off-white */
+        --foreground: #1c1917;
+        /* Very dark slate, softer than pure black */
+        --card: #ffffff;
+        --card-foreground: #1c1917;
+        --popover: #ffffff;
+        --popover-foreground: #1c1917;
+
+        --primary: #065f46;
+        /* Deep emerald as requested */
+        --primary-foreground: #ffffff;
+
+        --secondary: #f5f5f4;
+        --secondary-foreground: #292524;
+
+        --muted: #f5f5f4;
+        --muted-foreground: #78716c;
+
+        --accent: #ecfdf5;
+        /* Very light emerald */
+        --accent-foreground: #065f46;
+
+        --destructive: #ef4444;
+        --destructive-foreground: #ffffff;
+
+        --border: #e7e5e4;
+        --input: #e7e5e4;
+        --ring: #065f46;
+
+        --radius: 0.5rem;
+        /* 8px as requested */
+    }
+
+    .dark {
+        /* Optional dark mode support */
+        --background: #1c1917;
+        --foreground: #fafaf9;
+        --card: #292524;
+        --card-foreground: #fafaf9;
+        --popover: #292524;
+        --popover-foreground: #fafaf9;
+        --primary: #10b981;
+        /* Lighter emerald for visibility on dark */
+        --primary-foreground: #ffffff;
+        --secondary: #44403c;
+        --secondary-foreground: #fafaf9;
+        --muted: #44403c;
+        --muted-foreground: #a8a29e;
+        --accent: #44403c;
+        --accent-foreground: #fafaf9;
+        --destructive: #7f1d1d;
+        --destructive-foreground: #fafaf9;
+        --border: #44403c;
+        --input: #44403c;
+        --ring: #10b981;
+    }
+
+    * {
+        border-color: var(--border);
+    }
+
+    body {
+        background-color: var(--background);
+        color: var(--foreground);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-heading);
+        letter-spacing: -0.025em;
+    }
+}
+
+@layer utilities {
+    .subtle-shadow {
+        /* Very light drop shadows for depth as requested */
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .glass-card {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .dark .glass-card {
+        background-color: rgba(24, 24, 27, 0.9);
+        border-color: rgba(39, 39, 42, 1);
+    }
+}
