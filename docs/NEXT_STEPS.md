@@ -51,10 +51,9 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 
 ## Session handoff template (must update before closing session)
 - LAST_DONE: 
-  1. Created `validate-infra.yml` for CloudFormation validation. 
-  2. Migrated `cfc-project-core` (backend & frontend) into `pfe-app` on branch `M9-backend-integration`.
-  3. Updated `settings.py` for cloud-native deployment (env vars & dj-database-url).
-- NEXT_ACTION: Merge `M9-backend-integration` PR to `main` and verify Fargate deployment. Then start Phase 3 (M10/M11) - Frontend React S3 Deployment pipeline.
-- BLOCKERS: None. Awaiting PR merge.
-- FILES_TOUCHED: `docs/journal/*.md`, `backend/cfc_core/settings.py`, `.github/workflows/deploy.yml`
-- VERIFY_COMMANDS: Monitor GitHub Actions after PR merge.
+  1. Completed Phase 3 (M10/M11) - Frontend React S3 Deployment pipeline.
+  2. Dynamically injected API Gateway/ALB URL into Vite build process.
+- NEXT_ACTION: Ajouter une configuration/script pour générer un Snapshot RDS avant le teardown de l'infrastructure (pour éviter la perte de données). Puis enchaîner sur M12 (Monitoring) ou finaliser M13.
+- BLOCKERS: None. Session en pause.
+- FILES_TOUCHED: `docs/Roadmap.md`, `frontend/src/services/api.ts`, `.github/workflows/deploy.yml`
+- VERIFY_COMMANDS: N/A.

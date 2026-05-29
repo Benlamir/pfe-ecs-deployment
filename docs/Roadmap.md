@@ -44,14 +44,14 @@ Légende: [DONE] [IN_PROGRESS] [PENDING]
     2) Migrations DB exécutables sans intervention manuelle ad hoc.
     3) Healthcheck applicatif stable.
 
-- [IN_PROGRESS] M10 — Frontend React sur S3
+- [DONE] M10 — Frontend React sur S3
   - Objectif: héberger le frontend en statique sur S3.
   - Critères d'acceptation:
     1) Build React publié sur bucket S3 cible.
     2) Politique d'accès bucket conforme au mode d'exposition choisi.
     3) Frontend joignable et fonctionnel.
 
-- [IN_PROGRESS] M11 — Pipeline CI/CD unifié (frontend + backend)
+- [DONE] M11 — Pipeline CI/CD unifié (frontend + backend)
   - Objectif: sur un push, déployer frontend (S3) et backend (ECS/ECR).
   - Critères d'acceptation:
     1) Jobs parallèles frontend/backend.
