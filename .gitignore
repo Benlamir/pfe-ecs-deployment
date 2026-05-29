@@ -1,1 +1,7 @@
 deploy-infra.sh
+venv/
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.env
