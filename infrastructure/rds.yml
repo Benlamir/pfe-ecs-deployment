@@ -9,9 +9,7 @@ Parameters:
   DBUser:
     Type: String
     Default: cfcadmin
-  DBPassword:
-    Type: String
-    NoEcho: true
+
 
 Resources:
   RDSSecurityGroup:
@@ -42,7 +40,7 @@ Resources:
       StorageType: gp2
       DBName: !Ref DBName
       MasterUsername: !Ref DBUser
-      MasterUserPassword: !Ref DBPassword
+      ManageMasterUserPassword: true
       DBSubnetGroupName: !Ref DBSubnetGroup
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup
@@ -61,3 +59,8 @@ Outputs:
     Value: !GetAtt CfcDatabase.Endpoint.Port
     Export:
       Name: pfe-rds-port
+  DBSecretArn:
+    Description: ARN du secret contenant le mot de passe de la base de donnees
+    Value: !GetAtt CfcDatabase.MasterUserSecret.SecretArn
+    Export:
+      Name: pfe-db-secret-arn

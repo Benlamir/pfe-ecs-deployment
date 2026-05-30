@@ -87,3 +87,20 @@ Decision
 Consequences
 - Reduced idle cloud cost.
 - Requires disciplined teardown/recreate workflow.
+
+## 2026-05-30 — FinOps: No automated RDS snapshots before teardown
+Status: Accepted
+
+Context
+- We considered adding an automated RDS snapshot step before tearing down the infrastructure to preserve test data between sessions.
+- Manual RDS snapshots are billed for storage once the parent DB instance is deleted (approx $0.095/GB-month outside Free Tier).
+- While the cost is negligible for small test DBs, accumulating snapshots over time could lead to unnecessary AWS spend.
+
+Decision
+- Cancel the implementation of automated RDS snapshots in the `destroy-infra.sh` script.
+- Test data will be treated as ephemeral and re-seeded automatically or manually when the environment is recreated.
+
+Consequences
+- Zero AWS storage costs associated with teardowns.
+- We accept the loss of test data between development sessions.
+- Promotes fully stateless and reproducible testing environments.

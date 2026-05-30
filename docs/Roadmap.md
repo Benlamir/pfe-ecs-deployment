@@ -67,7 +67,7 @@ Légende: [DONE] [IN_PROGRESS] [PENDING]
     2) Notifications SNS opérationnelles.
     3) Procédure de triage documentée.
 
-- [PENDING] M13 — Gestion des secrets (AWS Secrets Manager)
+- [DONE] M13 — Gestion des secrets (AWS Secrets Manager)
   - Objectif: retirer les secrets du code/scripts versionnés.
   - Critères d'acceptation:
     1) Identifiants DB stockés dans Secrets Manager.

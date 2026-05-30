@@ -6,9 +6,7 @@ Parameters:
     Type: Number
     Default: 8000
     Description: Port d'écoute de ton application (modifier si ton app tourne sur 5000 ou 8080)
-  DBPassword:
-    Type: String
-    NoEcho: true
+
 
 Resources:
   PfeCluster:
@@ -39,6 +37,14 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !ImportValue pfe-db-secret-arn
 
   PfeLogGroup:
     Type: AWS::Logs::LogGroup
@@ -71,8 +77,9 @@ Resources:
               Value: cfcdb
             - Name: DB_USER
               Value: cfcadmin
+          Secrets:
             - Name: DB_PASSWORD
-              Value: !Ref DBPassword
+              Value: !Join [ '', [ !ImportValue pfe-db-secret-arn, ':password::' ] ]
           LogConfiguration:
             LogDriver: awslogs
             Options:

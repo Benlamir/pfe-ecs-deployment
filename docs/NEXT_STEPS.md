@@ -51,9 +51,9 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 
 ## Session handoff template (must update before closing session)
 - LAST_DONE: 
-  1. Completed Phase 3 (M10/M11) - Frontend React S3 Deployment pipeline.
-  2. Dynamically injected API Gateway/ALB URL into Vite build process.
-- NEXT_ACTION: Ajouter une configuration/script pour générer un Snapshot RDS avant le teardown de l'infrastructure (pour éviter la perte de données). Puis enchaîner sur M12 (Monitoring) ou finaliser M13.
-- BLOCKERS: None. Session en pause.
+  1. Completed Phase 3 (M13) - Securing DB credentials with AWS Secrets Manager native RDS integration (`ManageMasterUserPassword`).
+  2. Removed plaintext `DB_PASSWORD` environments from ECS and CloudFormation parameters.
+- NEXT_ACTION: Phase 3 (M12) - CloudWatch Monitoring and SNS Alerts.
+- BLOCKERS: None.
 - FILES_TOUCHED: `docs/Roadmap.md`, `frontend/src/services/api.ts`, `.github/workflows/deploy.yml`
 - VERIFY_COMMANDS: N/A.
