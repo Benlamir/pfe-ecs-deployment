@@ -79,7 +79,7 @@ Resources:
               Value: cfcadmin
           Secrets:
             - Name: DB_PASSWORD
-              Value: !Join [ '', [ !ImportValue pfe-db-secret-arn, ':password::' ] ]
+              ValueFrom: !Join [ '', [ !ImportValue pfe-db-secret-arn, ':password::' ] ]
           LogConfiguration:
             LogDriver: awslogs
             Options:
