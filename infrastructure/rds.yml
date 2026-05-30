@@ -9,9 +9,18 @@ Parameters:
   DBUser:
     Type: String
     Default: cfcadmin
-
+  DBPassword:
+    Type: String
+    NoEcho: true
 
 Resources:
+  CfcDbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "pfe-db-secret-${AWS::StackName}"
+      Description: Secret pour la base de donnees RDS
+      SecretString: !Sub '{"username":"cfcadmin","password":"${DBPassword}"}'
+
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -40,7 +49,7 @@ Resources:
       StorageType: gp2
       DBName: !Ref DBName
       MasterUsername: !Ref DBUser
-      ManageMasterUserPassword: true
+      MasterUserPassword: !Ref DBPassword
       DBSubnetGroupName: !Ref DBSubnetGroup
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup
@@ -61,6 +70,6 @@ Outputs:
       Name: pfe-rds-port
   DBSecretArn:
     Description: ARN du secret contenant le mot de passe de la base de donnees
-    Value: !GetAtt CfcDatabase.MasterUserSecret.SecretArn
+    Value: !Ref CfcDbSecret
     Export:
       Name: pfe-db-secret-arn

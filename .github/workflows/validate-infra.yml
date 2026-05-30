@@ -115,6 +115,7 @@ jobs:
             --template-file infrastructure/rds.yml \
             --stack-name pfe-rds-stack \
             --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides DBPassword=${{ secrets.DB_PASSWORD }} \
             --no-fail-on-empty-changeset
 
       - name: Deploy ECS Stack
