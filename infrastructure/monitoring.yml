@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PFE Milestone 12 : Monitoring (CloudWatch + SNS)'
+
+Parameters:
+  AlertEmail:
+    Type: String
+    Description: Email address to receive critical alerts
+    Default: "mondaymorning1w1@gmail.com"
+  EcsClusterName:
+    Type: String
+    Default: "pfe-cluster"
+  EcsServiceName:
+    Type: String
+    Default: "pfe-app-service"
+
+Resources:
+  # 1. Topic SNS pour les notifications
+  PfeAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "PFE Infra Alerts"
+      TopicName: pfe-alerts-topic
+
+  # 2. Souscription Email au Topic
+  PfeEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref AlertEmail
+      Protocol: email
+      TopicArn: !Ref PfeAlertTopic
+
+  # 3. Alarme CloudWatch : ECS CPU Utilization > 80%
+  EcsCpuAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: pfe-ecs-cpu-high
+      AlarmDescription: "CPU de l'application ECS Fargate > 80% sur 2 minutes"
+      Namespace: AWS/ECS
+      MetricName: CPUUtilization
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref EcsClusterName
+        - Name: ServiceName
+          Value: !Ref EcsServiceName
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref PfeAlertTopic
+      OKActions:
+        - !Ref PfeAlertTopic
+
+  # 4. Alarme CloudWatch : ECS Memory Utilization > 80%
+  EcsMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: pfe-ecs-memory-high
+      AlarmDescription: "RAM de l'application ECS Fargate > 80% sur 2 minutes"
+      Namespace: AWS/ECS
+      MetricName: MemoryUtilization
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref EcsClusterName
+        - Name: ServiceName
+          Value: !Ref EcsServiceName
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref PfeAlertTopic
+      OKActions:
+        - !Ref PfeAlertTopic
+
+  # 5. Alarme CloudWatch : ALB Erreurs 5XX > 5
+  Alb5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: pfe-alb-5xx-errors
+      AlarmDescription: "L'ALB renvoie des erreurs 5XX (Crash du Backend)"
+      Namespace: AWS/ApplicationELB
+      MetricName: HTTPCode_Target_5XX_Count
+      Dimensions:
+        - Name: LoadBalancer
+          Value: !ImportValue PfeAlbFullName
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref PfeAlertTopic
+      OKActions:
+        - !Ref PfeAlertTopic

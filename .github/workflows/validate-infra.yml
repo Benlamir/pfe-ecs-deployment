@@ -133,3 +133,11 @@ jobs:
             --stack-name pfe-s3-stack \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
+
+      - name: Deploy Monitoring Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file infrastructure/monitoring.yml \
+            --stack-name pfe-monitoring-stack \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset

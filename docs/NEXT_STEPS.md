@@ -28,7 +28,7 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
   - Emit rollout summary (task definition ARN, image URI, service events on failure).
   - Acceptance: failed runs provide actionable logs without manual deep dive.
 
-- [PENDING] Add frontend deployment pipeline stage (M10/M11 prep)
+- [DONE] Add frontend deployment pipeline stage (M11)
   - Build React app and sync artifacts to S3 bucket.
   - Acceptance: one pipeline run can deploy backend (ECS) + frontend (S3).
 

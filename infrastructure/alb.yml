@@ -73,3 +73,8 @@ Outputs:
     Value: !GetAtt AlbSecurityGroup.GroupId
     Export:
       Name: PfeAlbSecurityGroupId
+  AlbFullName:
+    Description: Le nom complet de l'ALB pour CloudWatch
+    Value: !GetAtt ApplicationLoadBalancer.LoadBalancerFullName
+    Export:
+      Name: PfeAlbFullName
