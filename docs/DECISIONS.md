@@ -104,3 +104,21 @@ Consequences
 - Zero AWS storage costs associated with teardowns.
 - We accept the loss of test data between development sessions.
 - Promotes fully stateless and reproducible testing environments.
+
+## 2026-05-31 — Security: Simulate Sandbox vs Production segregation via IAM
+Status: Accepted
+
+Context
+- The project runs on a single AWS account due to budget/learning constraints.
+- Iterating with strict Least Privilege locally creates immense operational friction (the "trial-and-error IAM" trap).
+- We need to demonstrate a production-ready, secure CI/CD pipeline for the final defense without hindering local development velocity.
+
+Decision
+- Simulate a multi-account strategy using IAM segregation:
+  - **Local CLI (`pfe-deployer` / `CloudFormationRole`) = "Sandbox"**: Granted broader permissions (e.g. Administrator/PowerUser) to allow fast iteration, testing `.yml` templates, and validating AWS SAA concepts without friction.
+  - **OIDC Role (`GitHubActionsDeployRole`) = "Production"**: Ultra-locked down with strict Least Privilege policies.
+
+Consequences
+- Solves the agility vs. security paradox for a single-account setup.
+- The CI/CD pipeline acts as an inviolable safety net, proving that the target infrastructure is secure even if the GitHub repository is compromised.
+- Significantly improves developer experience locally while meeting enterprise security standards in CI/CD.
