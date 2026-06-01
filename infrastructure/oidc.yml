@@ -166,6 +166,12 @@ Resources:
                 Action:
                   - secretsmanager:*
                 Resource: "*"
+              - Sid: AllowMonitoring
+                Effect: Allow
+                Action:
+                  - sns:*
+                  - cloudwatch:*
+                Resource: "*"
 
 Outputs:
   GitHubActionsRoleArn:
