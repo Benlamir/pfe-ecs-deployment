@@ -170,36 +170,36 @@ Ne disposant que d'un seul compte AWS (au lieu d'un compte Sandbox et d'un compt
 ### Phase 1 — Fondations Infrastructure [VALIDÉE]
 - M1 à M5 : IAM, VPC/Subnets, ECR, ECS Fargate, ALB.
 
-### Phase 2 — Automatisation DevOps [EN COURS]
+### Phase 2 — Automatisation DevOps [VALIDÉE]
 - M6 [FAIT] : CI/CD backend GitHub Actions + OIDC + déploiement ECS immuable (SHA).
-- M7 [EN COURS] : pipeline IaC CloudFormation (validation + déploiement contrôlé).
+- M7 [FAIT] : pipeline IaC CloudFormation (validation + déploiement contrôlé).
 
-### Phase 2.5 — Intégration 3-Tiers [PARTIELLEMENT VALIDÉE]
-- M8 [FAIT] : RDS PostgreSQL provisionné en zone privée.
-- M9 [FAIT/PERFECTIBLE] : backend Django/Gunicorn relié à RDS.
-- M10 [FAIT/PERFECTIBLE] : frontend React hébergé sur S3.
-- M11 [EN COURS] : pipeline unifiée frontend + backend.
+### Phase 2.5 — Intégration 3-Tiers [VALIDÉE]
+- M8 [FAIT] : RDS PostgreSQL provisionné en zone privée avec Cross-Stack References (`!ImportValue`).
+- M9 [FAIT] : backend Django/Gunicorn relié à RDS.
+- M10 [FAIT] : frontend React hébergé sur S3.
+- M11 [FAIT] : pipeline unifiée frontend + backend.
 
-### Phase 3 — Observabilité & Sécurité avancée [À DÉMARRER]
-- M12 : monitoring CloudWatch + alerting SNS.
-- M13 : gestion des secrets via AWS Secrets Manager (priorité sécurité).
+### Phase 3 — Observabilité & Sécurité avancée [VALIDÉE]
+- M12 [FAIT] : monitoring CloudWatch (Alarmes CPU/RAM/5XX) + alerting SNS.
+- M13 [FAIT] : gestion des secrets DB via AWS Secrets Manager.
 
-### Phase 4 — Production [À VENIR]
-- M14 : HTTPS + DNS (ACM, Route 53, et exposition sécurisée).
+### Phase 4 — Production [ANNULÉE - DÉCISION FINOPS]
+- M14 [ANNULÉ] : HTTPS + DNS (ACM, Route 53). Décision prise de ne pas engager de frais supplémentaires pour l'achat d'un nom de domaine à des fins purement académiques. L'infrastructure est fonctionnelle et accessible via le DNS fourni par l'ALB.
 
 ---
 
-## 7) Prochaines actions prioritaires
+## 7) Bilan Final du Projet
 
-1. Finaliser M7 :
-   - validation templates avec `cfn-lint` + `validate-template`,
-   - déploiement IaC contrôlé (garde-fou d'approbation).
-2. Finaliser M11 : pipeline unifiée frontend/backend.
-3. Démarrer M13 rapidement : externalisation des secrets sensibles.
-4. Ajouter M12 minimal en parallèle : alertes critiques CPU/RAM/erreurs service.
+L'infrastructure AWS de ce PFE est désormais **complète et entièrement fonctionnelle**.
+Les principaux accomplissements sont :
+1. **L'Automatisation CI/CD unifiée** : Déploiement sans friction du Frontend (S3) et Backend (ECS) via GitHub Actions.
+2. **La Sécurité au plus haut niveau** : Implémentation du fédérateur OIDC, du principe de moindre privilège via IAM, et intégration transparente d'AWS Secrets Manager pour sécuriser les identifiants de base de données.
+3. **L'Observabilité Proactive** : La pile CloudWatch et SNS est opérationnelle, garantissant une notification immédiate de l'administrateur en cas de dégradation des performances.
+4. **La Maîtrise des Coûts (FinOps)** : Le script `destroy-infra.sh` garantit un environnement effaçable à volonté. De plus, la décision d'annuler M14 (Achat de nom de domaine) démontre une réflexion pragmatique sur l'optimisation budgétaire.
 
 ---
 
 ## 8) Conclusion
 
-Le projet a dépassé la simple mise en ligne d'une application : il démontre une progression vers une architecture Cloud industrialisée, traçable et sécurisée. Les fondations techniques sont solides, la chaîne backend est opérationnelle, et les prochains jalons (IaC pipeline complète, secrets management, observabilité) visent la consolidation d'un niveau production.
+Ce projet s'achève sur un succès total. Il dépasse la simple mise en ligne d'une application pour démontrer l'élaboration d'une **architecture Cloud industrialisée, traçable, scalable et sécurisée**. Les fondations techniques sont robustes, la chaîne de déploiement est fluide, et l'ensemble reflète une maîtrise professionnelle des concepts AWS avancés. L'infrastructure est prête pour une démonstration académique ou une évolution vers un contexte d'entreprise réel.

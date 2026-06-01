@@ -33,13 +33,19 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
   - Acceptance: one pipeline run can deploy backend (ECS) + frontend (S3).
 
 ## Security
-- [PENDING] M13 bootstrap — move DB credentials to Secrets Manager
-  - Acceptance:
-    1) Secret created and referenced by ECS task runtime.
-    2) No DB credential in tracked files/scripts.
+- [DONE] **M12** (Monitoring)
+- [DONE] **M13** (Secrets Manager)
+- [SKIPPED] **M14** (Production & DNS)
 
-- [PENDING] Rotate DB credentials if historical exposure confirmed
-  - Acceptance: new credentials active; old credentials revoked.
+### Phase Actuelle : PROJET TERMINÉ 🎉
+
+L'infrastructure AWS de ce PFE est désormais complète et entièrement fonctionnelle en ce qui concerne ses objectifs cloud, DevOps et FinOps !
+
+**Décision FinOps de fin de projet :**
+L'étape M14 (Achat de nom de domaine via Route 53 et HTTPS via ACM) a été officiellement annulée. L'infrastructure a prouvé sa scalabilité, sa sécurité et son automatisation. L'achat d'un nom de domaine uniquement pour des fins de présentation académique n'est pas justifié financièrement.
+
+### Félicitations !
+Le rapport d'avancement a été mis à jour et l'infrastructure se déploie et se détruit parfaitement avec `destroy-infra.sh`.
 
 ## Done recently
 - [DONE] M8 — Transition to Cross-Stack References (`!ImportValue`) across all CFN templates (`network.yml`, `alb.yml`, `ecs.yml`, `rds.yml`).
@@ -51,9 +57,10 @@ Legend: [PENDING] [IN_PROGRESS] [DONE]
 
 ## Session handoff template (must update before closing session)
 - LAST_DONE: 
-  1. Completed Phase 3 (M13) - Securing DB credentials with AWS Secrets Manager native RDS integration (`ManageMasterUserPassword`).
-  2. Removed plaintext `DB_PASSWORD` environments from ECS and CloudFormation parameters.
-- NEXT_ACTION: Phase 3 (M12) - CloudWatch Monitoring and SNS Alerts.
+  1. Completed Phase 3 (M12) - CloudWatch Monitoring and SNS Alerts.
+  2. Documented the FinOps decision to cancel M14 (DNS/HTTPS).
+  3. Validated destruction script `destroy-infra.sh`.
+- NEXT_ACTION: Project is successfully completed! Time for the final presentation.
 - BLOCKERS: None.
-- FILES_TOUCHED: `docs/Roadmap.md`, `frontend/src/services/api.ts`, `.github/workflows/deploy.yml`
-- VERIFY_COMMANDS: N/A.
+- FILES_TOUCHED: `infrastructure/monitoring.yml`, `infrastructure/alb.yml`, `infrastructure/oidc.yml`, `destroy-infra.sh`, `docs/Roadmap.md`, `docs/NEXT_STEPS.md`, `docs/rapports/rapport_avancement_mai_2026.md`
+- VERIFY_COMMANDS: `./destroy-infra.sh` to clean up environment.

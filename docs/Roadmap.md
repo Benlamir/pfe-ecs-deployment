@@ -58,9 +58,9 @@ Légende: [DONE] [IN_PROGRESS] [PENDING]
     2) Échec d'un job = statut global en échec.
     3) Traçabilité des versions déployées (SHA commit).
 
-## Phase 3 — Sécurité & Observabilité avancées [PENDING]
+## Phase 3 — Sécurité & Observabilité avancées [DONE]
 
-- [PENDING] M12 — Monitoring (CloudWatch + SNS)
+- [DONE] M12 — Monitoring (CloudWatch + SNS)
   - Objectif: alerter proactivement sur l'état du service.
   - Critères d'acceptation:
     1) Alarmes CPU/RAM ECS définies.
@@ -78,14 +78,11 @@ Note d'ordre d'exécution recommandé:
 - M13 doit démarrer dès que possible avant exposition plus large en production.
 - Un socle minimal M12 (logs/alertes critiques) doit démarrer en parallèle de M11.
 
-## Phase 4 — Production [PENDING]
+## Phase 4 — Production [SKIPPED]
 
-- [PENDING] M14 — HTTPS & DNS (Route 53 + ACM)
+- [SKIPPED] M14 — HTTPS & DNS (Route 53 + ACM)
   - Objectif: exposition publique propre via domaine et TLS.
-  - Critères d'acceptation:
-    1) Certificat ACM validé et attaché à l'ALB.
-    2) Enregistrements Route 53 corrects.
-    3) Accès HTTPS fonctionnel bout-en-bout.
+  - Raison de l'annulation: Décision FinOps. L'achat et le maintien d'un nom de domaine dédié n'est pas justifié pour le périmètre de ce PFE. L'architecture a déjà démontré sa robustesse via le DNS fourni par l'ALB.
 
 ## Prochaine action concrète
 
