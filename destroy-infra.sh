@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PROFILE="pfe-deployer"
+PROFILE="sandbox-admin"
 
 echo "=========================================="
 echo "🧹 Début de la destruction de l'infrastructure"
