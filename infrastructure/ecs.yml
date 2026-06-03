@@ -64,6 +64,7 @@ Resources:
       ExecutionRoleArn: !GetAtt EcsTaskExecutionRole.Arn
       ContainerDefinitions:
         - Name: cfc-backend-container
+          Essential: true
           Image: 311141564701.dkr.ecr.us-east-1.amazonaws.com/pfe-app-repo:latest
           PortMappings:
             - ContainerPort: !Ref ContainerPort
