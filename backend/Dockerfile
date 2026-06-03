@@ -27,7 +27,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # 6. Copie du code source
 COPY . /app/
+RUN chmod +x /app/entrypoint.sh
 
-# 7. Commande de démarrage (Mode Production AWS via Gunicorn)
-# On n'utilise plus runserver en production
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "cfc_core.wsgi:application"]
+# 7. Commande de démarrage (Mode Production AWS via Entrypoint)
+CMD ["/app/entrypoint.sh"]
