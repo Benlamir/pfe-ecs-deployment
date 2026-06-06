@@ -18,7 +18,5 @@ for s in stacks:
 
 
     except ClientError as error:
-        if error.response ['Error']['Code'] == 'ValidationError':
-            print(f"Ignoré: la stack {s} est déjà détruite ou n'existe pas. detail {error}")
-        else:
-            raise error
+        print(f"Erreur inattendue lors de la suppression {s},: {error}")
+        raise error

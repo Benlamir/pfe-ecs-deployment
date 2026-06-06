@@ -78,6 +78,8 @@ Resources:
               Value: cfcdb
             - Name: DB_USER
               Value: cfcadmin
+            - Name: DB_ENGINE
+              Value: django.db.backends.postgresql
           Secrets:
             - Name: DB_PASSWORD
               ValueFrom: !Join [ '', [ !ImportValue pfe-db-secret-arn, ':password::' ] ]
