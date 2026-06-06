@@ -1,35 +1,24 @@
-#!/bin/bash
-set -e
+import boto3
+from botocore.exceptions import ClientError
 
-PROFILE="sandbox-admin"
 
-echo "=========================================="
-echo "🧹 Début de la destruction de l'infrastructure"
-echo "=========================================="
+my_session = boto3.Session(profile_name = 'sandbox-admin')
+cfn = my_session.client('cloudformation')
 
-# 0. Destruction du Monitoring
-echo "[0/4] Suppression de pfe-monitoring-stack..."
-aws cloudformation delete-stack --stack-name pfe-monitoring-stack --profile $PROFILE || true
-aws cloudformation wait stack-delete-complete --stack-name pfe-monitoring-stack --profile $PROFILE || true
-echo "✅ Monitoring détruit."
+stacks = ['pfe-monitoring-stack', 'pfe-ecs-stack', 'pfe-rds-stack', 'pfe-alb-stack']
 
-# 1. Destruction du Calcul (ECS)
-echo "[1/4] Suppression de pfe-ecs-stack..."
-aws cloudformation delete-stack --stack-name pfe-ecs-stack --profile $PROFILE || true
-aws cloudformation wait stack-delete-complete --stack-name pfe-ecs-stack --profile $PROFILE || true
-echo "✅ ECS détruit."
+for s in stacks:
+    try:
+        print(f"tentative de suppression de {s}...")
+        cfn.delete_stack(StackName=s)
 
-# 2. Destruction des Données (RDS)
-echo "[2/4] Suppression de pfe-rds-stack (Environ 3 à 5 minutes)..."
-aws cloudformation delete-stack --stack-name pfe-rds-stack --profile $PROFILE || true
-aws cloudformation wait stack-delete-complete --stack-name pfe-rds-stack --profile $PROFILE || true
-echo "✅ RDS détruit."
+        waiter = cfn.get_waiter('stack_delete_complete')
+        waiter.wait(StackName=s)
+        print(f"{s} détruite avec succés")
 
-# 3. Destruction du Routage (ALB)
-echo "[3/4] Suppression de pfe-alb-stack..."
-aws cloudformation delete-stack --stack-name pfe-alb-stack --profile $PROFILE || true
-aws cloudformation wait stack-delete-complete --stack-name pfe-alb-stack --profile $PROFILE || true
-echo "✅ ALB détruit."
 
-echo "=========================================="
-echo "💰 Environnement totalement nettoyé."
+    except ClientError as error:
+        if error.response ['Error']['Code'] == 'ValidationError':
+            print(f"Ignoré: la stack {s} est déjà détruite ou n'existe pas. detail {error}")
+        else:
+            raise error
