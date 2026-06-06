@@ -147,7 +147,7 @@ jobs:
           # Récupération dynamique de l'URL du Load Balancer
           ALB_URL=$(aws cloudformation describe-stacks \
             --stack-name pfe-alb-stack \
-            --query "Stacks[0].Outputs[?OutputKey=='ALBDNSName'].OutputValue" \
+            --query "Stacks[0].Outputs[?OutputKey=='AlbDnsName'].OutputValue" \
             --output text)
           
           export VITE_API_URL="http://$ALB_URL/api/"
