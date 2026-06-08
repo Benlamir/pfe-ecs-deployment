@@ -198,6 +198,13 @@ Les principaux accomplissements sont :
 
 ---
 
-## 8) Conclusion
+## 8) Note à l'attention de l'encadrant, Pr. BASLAM Mohamed
 
-Ce projet s'achève sur un succès total. Il dépasse la simple mise en ligne d'une application pour démontrer l'élaboration d'une **architecture Cloud industrialisée, traçable, scalable et sécurisée**. Les fondations techniques sont robustes, la chaîne de déploiement est fluide, et l'ensemble reflète une maîtrise professionnelle des concepts AWS avancés. L'infrastructure est prête pour une démonstration académique ou une évolution vers un contexte d'entreprise réel.
+Ce document constitue la synthèse technique de l'état d'avancement du PFE, avec un focus particulier sur les défis d'architecture Cloud, d'automatisation (CI/CD) et de sécurité (IAM, réseau).
+
+Je vous soumets ce rapport intermédiaire afin de recueillir vos premières remarques. Pourriez-vous m'indiquer :
+- Si l'équilibre entre les explications techniques (comme la ségrégation des rôles IAM ou la gestion dynamique avec `jq`) et les choix stratégiques (NoOps / FinOps) vous semble pertinent.
+- Quels sont les points spécifiques ou les mécanismes qui mériteraient d'être reformulés, allégés ou approfondis pour la rédaction du manuscrit final.
+- Toute piste d'amélioration ou exigence académique supplémentaire en vue de la préparation de la soutenance.
+
+Dans l'attente de vos retours, je vous remercie par avance pour votre lecture et votre accompagnement.
