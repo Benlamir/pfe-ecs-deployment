@@ -25,7 +25,21 @@ Le projet repose sur :
 
 ## 2) Architecture cible : comparaison et choix
 
-### 2.1 Approche standard (monolithe/serveur unique)
+### 2.1 Lexique d'Architecture : Mapping AWS vers Standard Réseau (OSI)
+
+Afin de faciliter l'analyse technique de l'infrastructure, voici la correspondance stricte entre les services managés AWS déployés et les concepts académiques fondamentaux (Modèle OSI / TCP/IP) :
+
+| Composant AWS | Concept Académique / Standard Réseau | Couche OSI |
+| :--- | :--- | :--- |
+| **Amazon VPC** | Réseau défini par logiciel (SDN) / Ségrégation de plan d'adressage | Couche 3 (Réseau) |
+| **Subnets (Public/Privé)** | Segmentation réseau / Sous-réseaux IP (CIDR) | Couche 3 (Réseau) |
+| **Application Load Balancer (ALB)** | Proxy inverse (*Reverse Proxy*) / Répartiteur de charge HTTP/HTTPS | Couche 7 (Application) |
+| **Security Groups (SG)** | Pare-feu à inspection d'état (*Stateful Firewall*) / Filtrage de flux | Couche 4 (Transport) |
+| **NAT Gateway** | Traduction d'adresses réseau sortantes (*Network Address Translation*) | Couche 3 (Réseau) |
+| **Internet Gateway (IGW)** | Passerelle de routage par défaut (Route `0.0.0.0/0`) | Couche 3 (Réseau) |
+| **Amazon Route 53** | Serveur de résolution de noms de domaine (DNS) | Couche 7 (Application) |
+
+### 2.2 Approche standard (monolithe/serveur unique)
 Dans une configuration classique, plusieurs composants tournent sur une même machine.
 
 Limites :
@@ -41,7 +55,7 @@ Limites :
                         |---> Base de données
 ```
 
-### 2.2 Approche cible : architecture 3-Tiers AWS
+### 2.3 Approche cible : architecture 3-Tiers AWS
 
 L'architecture implémentée isole les composants par couche pour améliorer sécurité, disponibilité et maintenabilité.
 
