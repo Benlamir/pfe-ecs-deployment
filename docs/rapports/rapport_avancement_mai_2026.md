@@ -127,9 +127,9 @@ Le workflow principal (`deploy.yml`) orchestre le déploiement simultané et par
 - **Job Backend** :
   1. Construit l'image Docker locale.
   2. Pousse l'image vers le registre Amazon ECR (taggée avec le SHA du commit pour garantir l'immuabilité et la traçabilité).
-  3. Récupère la définition de tâche (*Task Definition*) active sur ECS Fargate.
-  4. Injecte la nouvelle URI de l'image (via AWS CLI).
-  5. Enregistre la nouvelle révision et met à jour le service ECS.
+  3. **Extraction** : Récupère la définition de tâche (*Task Definition*) active sur ECS Fargate au format JSON via l'AWS CLI.
+  4. **Injection dynamique (`jq`)** : Au lieu de stocker la définition de tâche en dur dans le dépôt, le pipeline utilise l'utilitaire de parsing `jq` pour modifier le JSON à la volée. Il cible la clé `.containerDefinitions[0].image` pour y insérer la nouvelle URI générée (avec le nouveau SHA), et nettoie les métadonnées en lecture seule d'AWS (`revision`, `status`, etc.).
+  5. **Mise à jour ECS** : Soumet ce fichier JSON modifié pour enregistrer une nouvelle révision de la *Task Definition*, et ordonne au service ECS de l'appliquer (`aws ecs update-service`).
   6. Attend le signal `services-stable` pour confirmer le succès du *Rolling Deployment* (mise à jour sans interruption de service).
 
 ```text
