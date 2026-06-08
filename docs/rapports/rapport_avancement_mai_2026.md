@@ -70,13 +70,18 @@ L'architecture implémentée isole les composants par couche pour améliorer sé
  +-----------------------------------------------------------------------+
 ```
 
-### 2.3 Note d'ingénierie et d'optimisation des coûts (FinOps)
+---
 
-Le schéma ci-dessus illustre l'architecture cible idéale en 3-Tiers. Cependant, dans le cadre de ce projet, une adaptation architecturale a été implémentée pour des raisons d'optimisation financière.
+## 3) Choix d'Architecture (NoOps/FinOps) et Résolution de difficultés
 
-Dans une configuration strictement privée, ECS Fargate nécessite une **NAT Gateway** pour communiquer avec les services AWS (ECR pour tirer l'image Docker, Secrets Manager pour le mot de passe) ou Internet. Une NAT Gateway engendre des frais fixes (environ 32$/mois), non pris en charge par l'AWS Free Tier. 
+### 3.1 Stratégie d'hébergement : NoOps et optimisation financière
 
-Pour éviter ce coût, ECS Fargate est physiquement provisionné dans les sous-réseaux publics (avec une adresse IP publique dynamique). L'isolation est maintenue de façon logicielle par un **Security Group** très restrictif, qui rejette tout trafic Internet direct et n'accepte que les requêtes relayées par l'Application Load Balancer (ALB). L'application se comporte ainsi comme une "boîte noire" protégée du monde extérieur.
+Le choix des services pour héberger les couches de l'application 3-Tiers ne repose pas uniquement sur l'optimisation financière (*FinOps*), mais avant tout sur une volonté de réduire la charge d'administration système (*NoOps* / *Serverless*). Étant seul sur la réalisation de ce PFE, la priorité était d'éviter la complexité liée à la gestion de serveurs traditionnels :
+
+1. **Frontend sur S3 et Backend sur ECS Fargate (Approche NoOps)** : L'utilisation de machines virtuelles classiques (EC2) impliquerait de devoir administrer le système d'exploitation (mises à jour de sécurité, gestion des clés SSH, rotation des logs, patching). En optant pour Amazon S3 (site statique) et AWS Fargate (conteneurs), la gestion de l'infrastructure sous-jacente est totalement déléguée à AWS. Bien qu'ECS Fargate soit structurellement plus onéreux à l'heure qu'une instance EC2 de base, ce surcoût est compensé par le gain de temps majeur qui permet de se concentrer exclusivement sur la conception Cloud, le pipeline CI/CD et le code applicatif.
+2. **Optimisation des coûts de stockage (S3)** : Sur le plan strictement *FinOps*, l'hébergement du frontend sur S3 est extrêmement rentable. Au lieu de payer un serveur allumé 24h/24, le coût (quelques centimes) dépend uniquement du stockage brut et du trafic réseau réellement consommé.
+3. **Évitement de la NAT Gateway (Isolation Logique)** : Comme nous avons vues dans le schéma 3-Tiers idéal, Fargate est placé en sous-réseau privé. Cependant, Fargate a besoin d'Internet pour tirer l'image Docker (ECR) et lire les mots de passe (Secrets Manager). Connecter un sous-réseau privé à Internet requiert une **NAT Gateway**, dont le coût fixe incompressible avoisine les 32$/mois. 
+   **Solution appliquée :** Fargate a été physiquement provisionné dans un sous-réseau public. L'isolation et la confidentialité du trafic sont intégralement garanties de manière logicielle par un **Security Group** très restrictif, qui rejette tout trafic Internet direct et n'accepte que les requêtes relayées par l'Application Load Balancer (ALB).
 
 ```text
 [ Mécanisme d'Isolation FinOps ]
@@ -89,24 +94,18 @@ Pour éviter ce coût, ECS Fargate est physiquement provisionné dans les sous-r
                        +----------------------------------+
 ```
 
----
+### 3.2 Gestion des Health Checks ALB et compromis de sécurité (FinOps)
 
-## 3) Choix techniques (FinOps) et difficultés résolues
+**La boucle infinie de déploiement (Erreur 404)**
+Lors du déploiement initial, l'Application Load Balancer (ALB) a été configuré pour interroger régulièrement le conteneur Django via l'URI `HealthCheckPath: /health/` afin de s'assurer de son bon fonctionnement. 
+Cependant, l'application Django ne possédait pas cette route et retournait une erreur `HTTP 404`. Puisque l'ALB ne recevait pas le code `200 OK` attendu, il considérait le conteneur comme défaillant (*"unhealthy"*). En conséquence, le service ECS détruisait immédiatement le conteneur pour en lancer un nouveau, provoquant une boucle infinie de création/destruction qui bloquait totalement le déploiement de l'infrastructure. 
+**La solution** a été de développer explicitement une route `/health/` dans Django qui renvoie un statut `200 OK`. Cela a permis à l'ALB de valider l'état de santé du conteneur et de stabiliser le service (rolling deployment réussi).
 
-### 3.1 Choix FinOps
-- Frontend serverless sur S3 : coûts corrélés au stockage/traffic, sans VM 24/7.
-- Backend sur ECS Fargate : facturation CPU/RAM à l'usage.
-
-### 3.2 Difficulté technique principale
-Problème rencontré : erreur HTTP 404 sur health check ALB.
-
-Résolution appliquée :
-- pas de contournement infra fragile,
-- correction applicative via route dédiée `/health/` retournant `200 OK`.
-
-Résultat :
-- les health checks ALB valident correctement les tâches,
-- déploiements sans interruption sur ECS (rolling deployment) stabilisés.
+**Le compromis sur `ALLOWED_HOSTS`**
+Pour des raisons strictement financières, la décision a été prise de ne pas acheter de nom de domaine personnalisé (évitant ainsi les coûts liés à Amazon Route 53 et ACM). L'application est donc joignable via l'URL générée dynamiquement par AWS pour l'ALB.
+Puisque cette URL change à chaque recréation de l'infrastructure, le framework Django rejetterait les requêtes par défaut pour des raisons de sécurité de l'en-tête HTTP Host. Pour contourner cette limitation, une exception a été implémentée dans la configuration :
+`ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')`
+L'utilisation du joker (`*`) autorise toutes les requêtes entrantes quel que soit l'en-tête "Host". Bien qu'il s'agisse d'une faille de sécurité documentée (vulnérabilité aux attaques de *Host Header Injection*), c'est un risque assumé et un compromis nécessaire dans le cadre académique de ce PFE pour maintenir l'automatisation sans générer de coûts superflus.
 
 ---
 
