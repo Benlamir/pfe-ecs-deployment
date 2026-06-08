@@ -109,32 +109,39 @@ L'utilisation du joker (`*`) autorise toutes les requêtes entrantes quel que so
 
 ---
 
-## 4) Pipeline CI/CD : état actuel et cible
+## 4) Automatisation CI/CD (GitHub Actions)
 
-### 4.1 État actuel (opérationnel)
-- Pipeline backend fonctionnelle sur GitHub Actions.
-- Build/push image Docker vers ECR.
-- Déploiement ECS avec image immuable (tag SHA commit), via :
-  1) récupération de la task definition active,
-  2) injection du nouvel `image URI` taggé SHA,
-  3) enregistrement d'une nouvelle révision,
-  4) `update-service` + attente `services-stable`.
-- Authentification AWS via OIDC (zéro clé statique).
+L'ensemble des processus de test, d'intégration et de déploiement a été entièrement automatisé via GitHub Actions, garantissant une approche DevOps robuste et reproductible.
 
-### 4.2 Cible proche (en cours)
-- Pipeline IaC CloudFormation (M7) avec validation + déploiement contrôlé.
-- Pipeline unifiée frontend + backend (M11).
+### 4.1 Sécurité des déploiements (OIDC)
+Au lieu de stocker des clés d'accès AWS statiques dans GitHub (ce qui constitue une vulnérabilité critique en cas de fuite), le pipeline utilise la **fédération d'identité AWS OIDC (OpenID Connect)**. GitHub Actions demande un jeton temporaire de courte durée à AWS, qui expire automatiquement à la fin du workflow, garantissant une sécurité optimale (*Zero Trust*).
+
+### 4.2 Pipeline d'Infrastructure as Code (IaC)
+Un workflow dédié s'assure de la qualité du code d'infrastructure avant tout déploiement :
+- Analyse statique et lintage des templates CloudFormation (via `cfn-lint`) pour bloquer les erreurs de syntaxe ou de configuration dès le commit.
+
+### 4.3 Pipeline Unifié Applicatif (Frontend + Backend)
+Le workflow principal (`deploy.yml`) orchestre le déploiement simultané et parallèle des couches Frontend et Backend dès qu'un *push* est validé sur la branche `main` :
+
+- **Job Frontend** : Construit l'application React optimisée pour la production et synchronise les fichiers statiques directement avec le bucket Amazon S3.
+- **Job Backend** :
+  1. Construit l'image Docker locale.
+  2. Pousse l'image vers le registre Amazon ECR (taggée avec le SHA du commit pour garantir l'immuabilité et la traçabilité).
+  3. Récupère la définition de tâche (*Task Definition*) active sur ECS Fargate.
+  4. Injecte la nouvelle URI de l'image (via AWS CLI).
+  5. Enregistre la nouvelle révision et met à jour le service ECS.
+  6. Attend le signal `services-stable` pour confirmer le succès du *Rolling Deployment* (mise à jour sans interruption de service).
 
 ```text
-[ Code Local ] -> [ Push GitHub ] -> [ Workflow GitHub Actions ]
-                                        |
-                 +----------------------+----------------------+
-                 |                                             |
-                 v                                             v
-       [ Job Backend ]                                [ Job Frontend ]
-       Build + Push ECR                              Build React
-       Register Task Definition                      Sync S3
-       Update ECS Service                            Publication statique
+[ Code Local ] -> [ Push GitHub `main` ] -> [ Workflow GitHub Actions ]
+                                                 | (Auth OIDC)
+                         +-----------------------+-----------------------+
+                         |                                               |
+                         v                                               v
+               [ Job Backend ]                                  [ Job Frontend ]
+               Build + Push ECR                                 Build React (npm run build)
+               Register Task Definition                         aws s3 sync
+               Update ECS Service (Rolling)                     Publication statique
 ```
 
 ---
