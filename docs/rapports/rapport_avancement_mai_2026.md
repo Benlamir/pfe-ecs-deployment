@@ -146,47 +146,20 @@ Le workflow principal (`deploy.yml`) orchestre le déploiement simultané et par
 
 ---
 
-## 5) Problématique IAM rencontrée
+## 5) Problématique de Sécurité (Enfer opérationnel IAM)
 
-Lors de l'ajout de la stack S3, un échec `ROLLBACK_COMPLETE` est survenu.
+**Le problème rencontré : La friction du "Moindre Privilège" manuel**
+L'application stricte du principe du "moindre privilège" s'est révélée être un véritable enfer opérationnel, d'abord lors des déploiements d'infrastructure locaux (via AWS CLI), puis lors de la configuration du rôle pour le pipeline CI/CD :
+1. CloudFormation tente de créer ou de modifier une ressource.
+2. Le déploiement échoue immédiatement et déclenche un `ROLLBACK_COMPLETE` à cause d'un manque d'autorisation IAM.
+3. Il faut inspecter les événements de la stack (via `aws cloudformation describe-stack-events` ou l'onglet "Events" de la console) pour identifier précisément l'action API refusée (ex: `s3:CreateBucket`).
+4. Après avoir ajouté cette permission au rôle, on relance le déploiement... qui échoue de nouveau à l'étape suivante pour une autre permission manquante, créant une boucle bloquante pour la vélocité du projet.
 
-Cause :
-- le rôle d'exécution CloudFormation (principe du moindre privilège) ne possédait pas `s3:CreateBucket`.
+**La solution implémentée : Ségrégation des rôles (Sandbox vs Prod)**
+Pour concilier l'agilité (construire rapidement) et la sécurité (restreindre drastiquement les droits), une stratégie basée sur deux rôles distincts a été adoptée :
 
-Correction :
-- ajout contrôlé de l'autorisation requise,
-- reprise du déploiement avec succès.
-
-Note sécurité :
-- le frontend statique nécessite un accès public en lecture sur les objets publiés,
-- la policy doit rester minimale et explicitement justifiée.
-
-### 5.1 Gestion industrielle des permissions IAM (Paradoxe Sécurité vs Agilité)
-
-Dans le cadre de ce projet, j'ai endossé simultanément les rôles de Développeur, Architecte Cloud, Administrateur IAM et DevSecOps. La méthode itérative expérimentée (erreur -> console -> ajout de permission -> réessai) met en lumière la difficulté d'appliquer le moindre privilège manuellement. En milieu industriel, ce paradoxe (sécurité stricte vs agilité) est géré via des processus automatisés pour éviter cet enfer opérationnel :
-
-**1. Le paradigme "Sandbox" et l'automatisation du Moindre Privilège**
-L'approche standard est divisée en deux temps :
-- **La phase de Build (Sandbox)** : Dans un environnement de développement isolé, le rôle d'ingénierie possède des droits relativement larges (ex: `PowerUserAccess`). L'objectif est la vélocité : construire l'infrastructure sans blocages constants.
-- **La phase de Profilage** : Une fois le déploiement réussi, des outils natifs comme AWS IAM Access Analyzer analysent les logs d'activité (AWS CloudTrail). Ils génèrent automatiquement une politique IAM stricte ne contenant que les actions exactes réellement appelées. C'est cette politique sur mesure qui est déployée en Production.
-
-**2. Les "Permission Boundaries" (Frontières de permissions)**
-Pour donner de l'autonomie tout en contrôlant la limite des dégâts (Blast Radius), les administrateurs utilisent des *Permission Boundaries*. On donne au rôle de déploiement la permission globale de créer des ressources, mais avec une barrière stricte : *"Ce rôle peut faire ce qu'il veut, SAUF créer de nouveaux utilisateurs IAM, ou déployer en dehors de la région us-east-1"*.
-
-**3. L'IaC pour l'IAM et les revues asynchrones**
-Personne ne clique dans la console AWS pour ajouter une permission. L'IAM est écrit sous forme de code (Terraform, CloudFormation). L'ajout d'une permission (ex: `secretsmanager:GetSecretValue`) se fait via une "Pull Request" (PR) asynchrone, approuvée par un ingénieur de sécurité, puis appliquée automatiquement par le pipeline CI/CD.
-
-**4. L'accès persistant et le Just-In-Time (JIT)**
-Pour éviter les failles critiques liées aux accès persistants (Credential Leaks) :
-- **Pour les Humains (JIT Access)** : Authentification via AWS IAM Identity Center (SSO), assomption d'un rôle temporaire avec MFA, avec expiration automatique (1 à 8 heures).
-- **Pour les Machines** : Implémentation de la fédération OIDC (comme réalisé avec GitHub Actions dans ce projet). Le pipeline demande un jeton temporaire qui s'autodétruit après le déploiement, éliminant tout stockage de clés statiques.
-
-**5. Implémentation de ce modèle dans notre contexte (Compte Unique)**
-Ne disposant que d'un seul compte AWS (au lieu d'un compte Sandbox et d'un compte Production distincts), j'ai simulé cette ségrégation industrielle via l'IAM :
-- **Mon profil CLI local (`pfe-deployer` / `CloudFormationRole`) = Mon compte Sandbox virtuel.** Il dispose de droits élargis (type Administration) pour me permettre d'itérer, de tester les fichiers `.yml` en quelques secondes et de valider les concepts d'architecture sans friction opérationnelle.
-- **Mon rôle OIDC (`GitHubActionsDeployRole`) = Mon environnement de Production.** Il est ultra-verrouillé en *Moindre Privilège*. C'est mon filet de sécurité. Il prouve de manière irréfutable que l'infrastructure cible est inviolable, même si mon code GitHub venait à être compromis.
-
-*Bilan d'apprentissage* : Bien que douloureuse, l'application manuelle du moindre privilège est une méthode formatrice redoutable, forçant la mémorisation de l'anatomie exacte des appels API d'AWS.
+1. **Le rôle de développement local (Environnement Sandbox)** : Le profil AWS CLI utilisé localement dispose de droits relativement larges. Il permet d'itérer, de tester les fichiers CloudFormation et de construire l'architecture sans être freiné en permanence par des blocages de permissions.
+2. **Le rôle CI/CD OIDC (Environnement de Production)** : Le rôle assumé par GitHub Actions est, en revanche, totalement verrouillé. Les permissions minimales et exactes y sont listées (le moindre privilège strict). Il sert de filet de sécurité : il certifie que le code déployé en production est 100% sécurisé et ne dispose d'aucun droit superflu en cas de compromission du pipeline.
 
 ---
 
