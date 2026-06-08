@@ -18,5 +18,7 @@ for s in stacks:
 
 
     except ClientError as error:
+
         print(f"Erreur inattendue lors de la suppression {s},: {error}")
         raise error
+
