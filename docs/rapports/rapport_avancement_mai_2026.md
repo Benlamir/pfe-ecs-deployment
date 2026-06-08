@@ -13,13 +13,13 @@ L'objectif du PFE est de concevoir, sécuriser et automatiser le déploiement d'
 - Backend : Django REST + Gunicorn
 - Base de données : PostgreSQL
 
+**Périmètre d'intervention :** Ce Projet de Fin d'Études (PFE) portera exclusivement sur l'aspect infrastructure, réseau et sécurité. L'application en elle-même sera considérée comme une « boîte noire » (fournie à titre d'exemple) dont le seul but est de valider les mécanismes de déploiement et de haute disponibilité.
+
 Le projet repose sur :
 - le découplage complet des couches (présentation, application, données),
 - l'Infrastructure as Code avec AWS CloudFormation,
 - l'automatisation CI/CD avec GitHub Actions,
 - l'authentification fédérée AWS OIDC (sans clé statique stockée dans GitHub).
-
-Ce projet matérialise ma transition vers un rôle d'ingénieur Cloud, avec mise en pratique des concepts AWS avancés (IAM, VPC, ECS Fargate, ALB, RDS, S3, observabilité).
 
 ---
 
@@ -68,6 +68,25 @@ L'architecture implémentée isole les composants par couche pour améliorer sé
  |                                 |    --> Amazon RDS (PostgreSQL)   |  |
  |                                 +----------------------------------+  |
  +-----------------------------------------------------------------------+
+```
+
+### 2.3 Note d'ingénierie et d'optimisation des coûts (FinOps)
+
+Le schéma ci-dessus illustre l'architecture cible idéale en 3-Tiers. Cependant, dans le cadre de ce projet, une adaptation architecturale a été implémentée pour des raisons d'optimisation financière.
+
+Dans une configuration strictement privée, ECS Fargate nécessite une **NAT Gateway** pour communiquer avec les services AWS (ECR pour tirer l'image Docker, Secrets Manager pour le mot de passe) ou Internet. Une NAT Gateway engendre des frais fixes (environ 32$/mois), non pris en charge par l'AWS Free Tier. 
+
+Pour éviter ce coût, ECS Fargate est physiquement provisionné dans les sous-réseaux publics (avec une adresse IP publique dynamique). L'isolation est maintenue de façon logicielle par un **Security Group** très restrictif, qui rejette tout trafic Internet direct et n'accepte que les requêtes relayées par l'Application Load Balancer (ALB). L'application se comporte ainsi comme une "boîte noire" protégée du monde extérieur.
+
+```text
+[ Mécanisme d'Isolation FinOps ]
+
+                       +----------------------------------+
+  (Bloqué par le SG) X-|        [ ECS Fargate ]           |
+                       |       IP Publique activée        |
+[ Internet ] --(HTTP)-----> [ ALB ] --(HTTP)--> (Trafic Autorisé) |
+                       |    (Seule source acceptée)       |
+                       +----------------------------------+
 ```
 
 ---
