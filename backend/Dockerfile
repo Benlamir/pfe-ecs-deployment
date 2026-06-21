@@ -25,6 +25,9 @@ RUN apt-get update \
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+# exposition du port 8000
+EXPOSE 8000
+
 # 6. Copie du code source
 COPY . /app/
 RUN chmod +x /app/entrypoint.sh
