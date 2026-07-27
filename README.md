@@ -1,4 +1,4 @@
-# PFE : Déploiement automatisé d'une architecture Cloud 3-Tiers sur AWS
+# Déploiement automatisé d'une architecture Cloud 3-Tiers sur AWS
 
 Ce dépôt contient le code source et l'Infrastructure as Code (IaC) d'un Projet de Fin d'Études (Licence Professionnelle ISRC). L'objectif est de concevoir, sécuriser et automatiser le déploiement d'une application web moderne sur Amazon Web Services (AWS).
 
